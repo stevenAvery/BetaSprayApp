@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+
+
+/*** General ******************************************************************/
+html {
+    @apply antialiased text-slate-800 font-sans;
+}
+
+/* This allows you to hide Alpine DOM until it's ready to go. */
+[x-cloak] {
+    @apply hidden;
+}
+
+.bg-light {
+    /* background-color: #F8F9FA; */
+    background-color: rgb(245, 248, 251);
+}
+
+.container-w {
+    @apply w-full max-w-screen-lg mx-auto px-4;
+}
+
+.grid-auto-fit-200px {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+
+.grid-cols-1\/3-2\/3 {
+    grid-template-columns: 1fr 2fr;
+}
+
+@media screen(md) {
+    .md-grid-cols-1\/3-2\/3 {
+        grid-template-columns: 1fr 2fr !important;
+    }
+}
+
+.card {
+    @apply bg-white drop-shadow rounded-lg p-4;
+}
+
+.card-outline {
+    @apply border-2 border-dashed border-slate-400 rounded-lg p-4;
+}
+
+.input-label {
+    @apply text-sm text-slate-500 mb-1;
+}
+
+.input-enabled {
+    @apply text-sm w-full px-2 py-1 rounded-lg;
+    @apply bg-white text-slate-600 border border-slate-300 focus:border-blue-500;
+}
+
+.button-group {
+    @apply flex flex-row flex-nowrap rounded-lg text-xs;
+    @apply bg-white text-slate-600 border border-slate-300 focus:border-blue-500;
+}
+
+.button-group-item {
+    @apply m-1 px-2 py-1 rounded-md hover:bg-slate-100;
+}
+
+.button-group-selected {
+    @apply text-slate-50 bg-blue-700 hover:text-slate-50 hover:bg-blue-700;
+}
+
+/*** Problem Page *************************************************************/
+.holds-editor-size {
+    @apply w-full;
+    height: calc(100vh - 250px);
+}
+
+.holds-editor-input-enabled {
+    @apply rounded-lg bg-white border border-slate-300;
+}
+
+@tailwind utilities;

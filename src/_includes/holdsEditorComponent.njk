@@ -1,0 +1,103 @@
+
+<div
+    x-ref="holdsEditorContainer"
+    id="holdsEditorContainer"
+    x-data="{
+        isLoading: true,
+    }"
+    x-init="
+    "
+    class="w-full h-full m-0 p-0 overflow-hidden"
+>
+    {% loading { while: 'isLoading' } %}
+
+     <canvas 
+        x-ref="holdsEditorCanvas"
+        x-show="!isLoading"
+        x-data="{
+            canvas: null,
+            ctx: null,
+            utils: $store.holdsEditorService.getUtils(),
+            updateCanvasIfPossible: null,
+            startNewHold: null,
+            finishNewHold: null
+        }"
+        x-init="
+            // TODO Find better way of storing this function
+            this.updateCanvasIfPossible = () => {
+                if (utils.isImageLoaded && utils.isAfterFirstTick) {
+                    var allHoldTypes = $store.utilService.getAllHoldTypes()
+
+                    this.canvas = utils.fitCanvasToContainer(this.canvas, $refs.holdsEditorContainer);
+                    const renderResult = utils.render(
+                        this.ctx, 
+                        utils.wallImage, 
+                        $store.holdsEditorService.problem, 
+                        allHoldTypes);
+                    this.ctx = renderResult.ctx;
+                    utils.wallImageTransform = renderResult.wallImageTransform;
+
+                    isLoading = false;
+                }
+            };
+            this.startNewHold = (mouseDownEvent) => {
+                const ctxPoint = utils.getCtxPoint(this.canvas, mouseDownEvent);
+                const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
+
+                if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
+                    utils.newHold = {
+                        typeId: $store.holdsEditorService.selectedHoldTypeId,
+                        x: wallImagePoint.x,
+                        y: wallImagePoint.y,
+                        r: 0.0,
+                    };
+                } else {
+                    utils.newHold = null;
+                }
+            };
+            this.finishNewHold = (mouseUpEvent) => { 
+                const ctxPoint = utils.getCtxPoint(this.canvas, mouseUpEvent);
+                const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
+
+                if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
+                    const distance = $store.utilService.getDistance(
+                        utils.newHold.x, utils.newHold.y, wallImagePoint.x, wallImagePoint.y);
+                    utils.newHold.r = distance;
+
+                    $dispatch('hold-added', { hold: utils.newHold });
+                    $store.holdsEditorService.problem.holds.push(utils.newHold);
+                    this.updateCanvasIfPossible();
+                }
+
+                // Clear out newHold object no matter what
+                utils.newHold = null;
+            };
+
+            this.canvas = $refs.holdsEditorCanvas; // TODO Is it necessary to store canvas if it exists in ctx?
+            this.ctx = this.canvas.getContext('2d');
+
+            utils.wallImage.src = $store.holdsEditorService.problem.wallImageUrl;
+            utils.wallImage.addEventListener('load', () => {
+                utils.isImageLoaded = true;
+                this.updateCanvasIfPossible();
+            });
+
+            $nextTick(() => {
+                utils.isAfterFirstTick = true;
+                this.updateCanvasIfPossible();
+            });
+
+        "
+        x-on:resize.window="
+            this.updateCanvasIfPossible();
+        "
+        x-on:mousedown="
+            this.startNewHold($event);
+        "
+        x-on:mouseup="
+            this.finishNewHold($event);
+        "
+        class="w-full h-full"
+    >
+     </canvas>
+</div>

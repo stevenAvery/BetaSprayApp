@@ -1,0 +1,35 @@
+{% set title = 'Search' %}
+{% extends "layout.njk" %}
+
+{% block body %}
+<div
+    x-data="{
+        walls: [] 
+    }"
+    x-init="
+        walls = $store.apiService.getWalls();
+    ">
+
+    <main class="container-w py-4">
+        <div
+            class="grid grid-auto-fit-200px gap-3 auto-rows-fr">
+            <template x-for="wall in walls">
+                <div 
+                    class="card cursor-pointer"
+                    x-on:click="window.location = (`/wall/?wallId=${wall.id}`)">
+                    <h2 
+                        class="text-slate-700 text-base truncate" 
+                        x-text="`${$store.utilService.vGradeToString(wall.minVGrade)} - ${$store.utilService.vGradeToString(wall.maxVGrade)} | ${wall.name}`"></h2>
+                    <p class="text-slate-400 text-xs truncate" x-text="wall.adminName"></p>
+                    <div class="mt-2 flex flex-row flex-nowrap justify-end space-x-2">
+                        <span class="text-[10px] text-slate-400 flex flex-row flex-nowrap">
+                            {% icon 'activity', { height: '15', hasMarginRight: true } %}
+                            <span x-text="$store.utilService.abbreviateNumber(wall.problemsCount)"></span>
+                        </span>
+                    </div>
+                </div>
+            </template>
+        </div>
+    </main>
+</div>
+{% endblock %}

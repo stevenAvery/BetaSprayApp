@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="description" content="Start the send train.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" type="text/css" href="/assets/main.css">
+    <script src="/assets/main.js" defer></script>
+
+    <title>{{ title }} | {{ config.appTitle }}</title>
+
+    {% block head %}{% endblock %}
+</head>
+<body class="bg-light">
+    {% include 'navbar.njk' %}
+    {% block body %}
+        {{ content | safe }}
+    {% endblock %}
+</body>
+</html>

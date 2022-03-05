@@ -1,0 +1,76 @@
+{% set title = 'Wall' %}
+{% extends "layout.njk" %}
+
+
+{% block body %}
+<div
+    x-data="{
+        hasWallId: new URLSearchParams(location.search).has('wallId'),
+        wallId: new URLSearchParams(location.search).get('wallId'),
+        problems: [] 
+    }"
+    x-init="problems = hasWallId ? $store.apiService.getProblemsForWall(wallId) : [];">
+
+    <!-- Subnav -->
+    <div class="container-w h-10">
+        <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
+            <div class="flex flex-row">
+                <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" href="/wall/">
+                    {% iconlabel { icon: 'search', style: 'py-1' } %}Search{% endiconlabel %}
+                </a>
+                <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" href="/wall/">
+                    {% iconlabel { icon: 'filter', style: 'py-1' } %}Filter{% endiconlabel %}
+                </a>
+                <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" href="/wall/">
+                    {% iconlabel { icon: 'bar-chart', style: 'py-1' } %}Sort{% endiconlabel %}
+                </a>
+                <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" href="/wall/">
+                    {% iconlabel { icon: 'plus-circle', style: 'py-1' } %}Add Problem{% endiconlabel %}
+                </a>
+            </div>
+            <div class="flex flex-row">
+                <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
+                    {% iconlabel { icon: 'settings', style: 'py-1' } %}Settings{% endiconlabel %}
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <main class="container-w px-6 py-4">
+        <div x-cloak x-show="!hasWallId">
+            <h2 class="text-2xl text-slate-600">No wall id given.</h2>
+        </div>
+
+        <!-- Climbs -->
+        <div
+            x-cloak x-show="hasWallId" 
+            class="grid grid-auto-fit-200px gap-3 auto-rows-fr">
+            <template x-for="problem in problems">
+                <div 
+                    class="card cursor-pointer"
+                    x-on:click="window.location = (`/problem/?wallId=${wallId}&problemId=${problem.id}`)">
+                    <h2 class="text-slate-700 text-base truncate" x-text="`${$store.utilService.vGradeToString(problem.vGrade)} | ${problem.name}`"></h2>
+                    <p class="text-slate-400 text-xs truncate" x-text="problem.setterName"></p>
+                    <div class="mt-2 flex flex-row flex-nowrap justify-end space-x-2">
+                        <span class="text-[10px] text-slate-400 flex flex-row flex-nowrap">
+                            {% icon 'check', { height: '15', hasMarginRight: true } %}
+                            <span x-text="$store.utilService.abbreviateNumber(problem.sendCount)"></span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 flex flex-row flex-nowrap">
+                            {% icon 'heart', { height: '15', hasMarginRight: true } %}
+                            <span x-text="$store.utilService.abbreviateNumber(problem.likeCount)"></span>
+                        </span>
+                    </div>
+                </div>
+            </template>
+            <div class="card-outline cursor-pointer" x-cloak>
+                <h2 class="text-slate-500 text-base truncate">
+                    {% iconlabel { icon: 'plus-circle', iconHeight: '24' } %}Add Problem{% endiconlabel %}
+                </h2>
+                <p class="text-slate-400 text-xs truncate">Add a new Problem for this wall.</p>
+            </div>
+        </div>
+    </main>
+</div>
+{% endblock %}
