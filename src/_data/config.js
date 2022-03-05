@@ -4,10 +4,9 @@ module.exports = {
         prod: process.env.NODE_ENV === 'production',
     },
     featureFlags: {
-        holdsEditor: {
-            zoom: false,
-            undo: false,
-        },
+        holdsEditorZoom: false,
+        holdsEditorUndo: false,
+        problemDelete:   false,
     },
     appTitle: 'BetaSpray',
 };

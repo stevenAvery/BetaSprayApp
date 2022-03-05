@@ -10,48 +10,57 @@
         hasProblemId: new URLSearchParams(location.search).has('problemId'),
         problemId: new URLSearchParams(location.search).get('problemId'),
         problem: {},
+        isNewProblem: false,
+        isExistingProblem: true,
+        isValidParameters: true,
     }"
     x-init="
         problem = hasWallId && hasProblemId ? $store.apiService.getProblem(wallId, problemId) : {};
+        isNewProblem = hasWallId && !hasProblemId;
+        isExistingProblem = hasWallId && hasProblemId;
+        isValidParameters = isNewProblem || isExistingProblem;
     ">
 
     <!-- Subnav -->
-    <div class="container-w h-10">
+    <div x-show="isValidParameters" class="container-w h-10">
         <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
             <div class="flex flex-row">
                 <a 
+                    x-show="hasWallId"
                     x-bind:href="`/wall/?wallId=${wallId}`"
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'chevron-left', style: 'py-1' } %}Back{% endiconlabel %}
                 </a>
             </div>
             <div x-show="hasProblemId" class="flex flex-row">
-                <a 
+                <a
+                    x-show="isExistingProblem"
                     href="/"
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'edit', style: 'py-1' } %}Edit{% endiconlabel %}
                 </a>
+                {% if config.featureFlags.problemDelete %}
                 <a 
                     href="/"
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'trash', style: 'py-1' } %}Delete{% endiconlabel %}
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>
 
     <!-- Content -->
     <main x-cloak class="container-w px-6 py-4">
-        <div x-show="!hasWallId">
-            <h2 class="text-2xl text-slate-600">No wall id given.</h2>
-        </div>
-        <div x-show="!hasProblemId">
-            <h2 class="text-2xl text-slate-600">No problem id given.</h2>
+        <div x-show="!isValidParameters">
+            <h2 class="text-2xl text-slate-700">Invalid URL Parameters</h2>
+            <p x-show="!hasWallId" class="text-sm text-slate-500">No wall id given.</p>
+            <p class="text-sm text-slate-500"><a class="text-blue-700 hover:text-blue-900" href="/search/">Search for a spray wall</a> to start crushing.</p>
         </div>
 
         <!-- Problem Details -->
         <div
-            x-show="hasWallId && hasProblemId"
+            x-show="isValidParameters"
             class="grid grid-cols-1 md-grid-cols-1/3-2/3 gap-4">
 
             <!-- Left Section -->
@@ -144,14 +153,14 @@
                             </template>
                         </div>
                         <div class="flex flex-row flex-nowrap space-x-2">
-                            {% if config.featureFlags.holdsEditor.undo %}
+                            {% if config.featureFlags.holdsEditorUndo %}
                             <div class="button-group">
                                 <button type="button" class="button-group-item">
                                     {% icon 'rotate-ccw', { height: '18px' } %}
                                 </button>
                             </div>
                             {% endif %}
-                            {% if config.featureFlags.holdsEditor.zoom %}
+                            {% if config.featureFlags.holdsEditorZoom %}
                             <!-- Zoom Feature -->
                             <div class="button-group">
                                 <button type="button" class="button-group-item" 

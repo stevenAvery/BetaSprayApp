@@ -6,7 +6,7 @@ module.exports = (config) => {
     config.addWatchTarget('./dist/assets/main.css');
     config.addWatchTarget('./dist/assets/main.js');
 
-    config.addPassthroughCopy('**/*.{jpg,jpeg,png}');
+    config.addPassthroughCopy('./src/assets/*.{jpg,jpeg,png}');
 
     config.setBrowserSyncConfig({
         files: ['dist/**/*'],
