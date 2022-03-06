@@ -10,16 +10,31 @@
         hasProblemId: new URLSearchParams(location.search).has('problemId'),
         problemId: new URLSearchParams(location.search).get('problemId'),
         problem: {},
+        wall: {},
         isNewProblem: false,
         isExistingProblem: true,
         isValidParameters: true,
         isEditing: false,
     }"
     x-init="
-        problem = hasWallId && hasProblemId ? $store.apiService.getProblem(wallId, problemId) : {};
         isNewProblem = hasWallId && !hasProblemId;
         isExistingProblem = hasWallId && hasProblemId;
         isValidParameters = isNewProblem || isExistingProblem;
+
+        wall = hasWallId ? $store.apiService.getWallSummary(wallId) : {};
+        if (wall == null)
+            isValidParameters = false;
+
+        if (isValidParameters && isExistingProblem) {
+            problem = $store.apiService.getProblem(wallId, problemId);
+            if (problem === null)
+                isValidParameters = false;
+        } else if (isValidParameters && isNewProblem) {
+            problem = $store.utilService.getNewProblem(wall.defaultWallImageUrl);
+            // Start in isEditing mode for new problems
+            isEditing = true;
+            $dispatch('is-editing-updated', { isEditing: isEditing });
+        }
     ">
 
     <!-- Subnav -->
@@ -33,7 +48,7 @@
                     {% iconlabel { icon: 'chevron-left', style: 'py-1' } %}Back{% endiconlabel %}
                 </a>
             </div>
-            <div x-show="hasProblemId" class="flex flex-row">
+            <div class="flex flex-row">
                 <a
                     x-show="isExistingProblem && !isEditing"
                     x-on:click="
@@ -44,18 +59,31 @@
                     {% iconlabel { icon: 'edit', style: 'py-1' } %}Edit{% endiconlabel %}
                 </a>
                 <a
-                    x-show="isExistingProblem && isEditing"
+                    x-show="isEditing"
                     x-on:click="
-                        // TODO update problem
                         isEditing = false;
-                        $dispatch('is-editing-updated', { isEditing: isEditing })
+                        $dispatch('is-editing-updated', { isEditing: isEditing });
+
+                        if (isExistingProblem) {
+                            $store.apiService.updateProblem(wallId, problem);
+                        } else if (isNewProblem) {
+                            problem = $store.apiService.createProblem(wallId, problem);
+
+                            isNewProblem = false;
+                            isExistingProblem = true;
+                        }
+
+                        {# When the API is returning the problem id we'll want to reload the current page #}
+                        {# window.location.replace(`/problem/?wallId=${wallId}&problemId=${problem.id}`); #}
+                        window.location = `/wall/?wallId=${wallId}` // redirect back to wall
+
                     "
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'save', style: 'py-1' } %}Save{% endiconlabel %}
                 </a>
                 {% if config.featureFlags.problemDelete %}
                 <a
-                    href="/"
+                    x-show="isExistingProblem"
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'trash', style: 'py-1' } %}Delete{% endiconlabel %}
                 </a>
@@ -69,135 +97,140 @@
         <div x-show="!isValidParameters">
             <h2 class="text-2xl text-slate-700">Invalid URL Parameters</h2>
             <p x-show="!hasWallId" class="text-sm text-slate-500">No wall id given.</p>
+            <p x-show="wall === null" class="text-sm text-slate-500">Wall not found.</p>
+            <p x-show="isExistingProblem && problem === null" class="text-sm text-slate-500">Problem not found.</p>
             <p class="text-sm text-slate-500"><a class="text-blue-700 hover:text-blue-900" href="/search/">Search for a spray wall</a> to start crushing.</p>
         </div>
 
         <!-- Problem Details -->
-        <div
-            x-show="isValidParameters"
-            class="grid grid-cols-1 md-grid-cols-1/3-2/3 gap-4">
+        <template
+            x-if="isValidParameters"
+            class="w-full h-full m-0 p-0">
+            <div
+                x-show="isValidParameters"
+                class="grid grid-cols-1 md-grid-cols-1/3-2/3 gap-4">
 
-            <!-- Left Section -->
-            <div class="flex flex-col">
-                <!-- Problem Name -->
-                <div class="mb-2">
-                    <label for="problemName" class="input-label">Problem Name</label>
-                    <input 
-                        id="problemName" 
-                        type="text" 
-                        class="input-text"
-                        x-bind:disabled="!isEditing"
-                        x-model="problem.name" />
+                <!-- Left Section -->
+                <div class="flex flex-col">
+                    <!-- Problem Name -->
+                    <div class="mb-2">
+                        <label for="problemName" class="input-label">Problem Name</label>
+                        <input 
+                            id="problemName" 
+                            type="text" 
+                            class="input-text"
+                            x-bind:disabled="!isEditing"
+                            x-model="problem.name" />
+                    </div>
+
+                    <!-- V Grade -->
+                    <div class="mb-2">
+                        <label for="problemVGrade" class="input-label">V Grade</label>
+                        <input 
+                            id="problemVGrade" 
+                            type="number" 
+                            class="input-text"
+                            x-bind:disabled="!isEditing"
+                            x-model="problem.vGrade" />
+                    </div>
+
+                    <!-- Setter Name -->
+                    <div class="mb-2">
+                        <label for="problemSetterName" class="input-label">Setter</label>
+                        <input 
+                            id="problemSetterName"
+                            type="text"
+                            class="input-text"
+                            x-bind:disabled="!isEditing"
+                            x-model="problem.setterName" />
+                    </div>
+
+                    <!-- Problem Description -->
+                    <div class="mb-2">
+                        <label for="problemDescription" class="input-label">Description</label>
+                        <textarea 
+                            id="problemDescription"
+                            rows="3"
+                            class="input-text"
+                            x-bind:disabled="!isEditing"
+                            x-model="problem.description">
+                        </textarea>
+                    </div>
                 </div>
 
-                <!-- V Grade -->
-                <div class="mb-2">
-                    <label for="problemVGrade" class="input-label">V Grade</label>
-                    <input 
-                        id="problemVGrade" 
-                        type="number" 
-                        class="input-text"
-                        x-bind:disabled="!isEditing"
-                        x-model="problem.vGrade" />
-                </div>
+                <!-- Right Section -->
+                <div class="flex flex-col">
+                    <label for="holds" class="input-label">Holds</label>
 
-                <!-- Setter Name -->
-                <div class="mb-2">
-                    <label for="problemSetterName" class="input-label">Setter</label>
-                    <input 
-                        id="problemSetterName"
-                        type="text"
-                        class="input-text"
-                        x-bind:disabled="!isEditing"
-                        x-model="problem.setterName" />
-                </div>
-
-                <!-- Problem Description -->
-                <div class="mb-2">
-                    <label for="problemDescription" class="input-label">Description</label>
-                    <textarea 
-                        id="problemDescription"
-                        rows="3"
-                        class="input-text"
-                        x-bind:disabled="!isEditing"
-                        x-model="problem.description">
-                    </textarea>
-                </div>
-            </div>
-
-            <!-- Right Section -->
-            <div class="flex flex-col">
-                <label for="holds" class="input-label">Holds</label>
-
-                <!-- Holds Editor Component -->
-                <div 
-                    x-data="{
-                        holdTypes: $store.utilService.getAllHoldTypes(),
-                        holdTypeSelectedId: 0,
-                    }"
-                    class="flex flex-col" >
+                    <!-- Holds Editor Component -->
                     <div 
-                        id="holds" 
-                        x-bind:class="{
-                            'holds-editor-size overflow-auto input-holds-editor': true, 
-                            'input-holds-editor-disabled': !isEditing
+                        x-data="{
+                            holdTypes: $store.utilService.getAllHoldTypes(),
+                            holdTypeSelectedId: 0,
                         }"
-                        x-init="
-                            // $store.holdsEditorService.wallImageUrl = problem.wallImageUrl;
-                            $store.holdsEditorService.problem = problem;
-                        "
-                        x-on:hold-added="
-                            problem.holds.push($event.detail.hold);
-                            $store.holdsEditorService.problem = problem;
-                        " >
-                        {% include 'holdsEditorComponent.njk' %}
-                    </div>
-                    <div x-show="isEditing" class="mt-2 flex flex-row justify-between space-x-2">
-                        <div class="button-group">
-                            <template x-for="holdType in holdTypes">
-                                <button 
-                                    type="button" 
-                                    class="flex flex-row flex-nowrap button-group-item" 
-                                    x-bind:class="holdTypeSelectedId === holdType.id ? 'button-group-selected' : ''"
-                                    x-on:click="
-                                        holdTypeSelectedId = holdType.id;
-                                        $store.holdsEditorService.selectedHoldTypeId = holdTypeSelectedId;
-                                    "
-                                >
-                                    {# <span x-bind:style="holdTypeSelectedId !== holdType.id ? `color: ${holdType.colour};` : ''"> #}
-                                    <span x-bind:style="`color: ${holdType.colour};`">
-                                        {% icon 'circle', { height: '18px', hasMarginRight: true } %}
-                                    </span>
-                                    <span x-text="holdType.text"></span>
-                                </button>
-                            </template>
+                        class="flex flex-col">
+                        <div 
+                            id="holds" 
+                            x-bind:class="{
+                                'holds-editor-size overflow-auto input-holds-editor': true, 
+                                'input-holds-editor-disabled': !isEditing
+                            }"
+                            x-init="
+                                // $store.holdsEditorService.wallImageUrl = problem.wallImageUrl;
+                                $store.holdsEditorService.problem = problem;
+                            "
+                            x-on:hold-added="
+                                problem.holds.push($event.detail.hold);
+                                $store.holdsEditorService.problem = problem;
+                            ">
+                            {% include 'holdsEditorComponent.njk' %}
                         </div>
-                        <div class="flex flex-row flex-nowrap space-x-2">
-                            {% if config.featureFlags.holdsEditorUndo %}
+                        <div x-show="isEditing" class="mt-2 flex flex-row justify-between space-x-2">
                             <div class="button-group">
-                                <button type="button" class="button-group-item">
-                                    {% icon 'rotate-ccw', { height: '18px' } %}
-                                </button>
+                                <template x-for="holdType in holdTypes">
+                                    <button 
+                                        type="button" 
+                                        class="flex flex-row flex-nowrap button-group-item" 
+                                        x-bind:class="holdTypeSelectedId === holdType.id ? 'button-group-selected' : ''"
+                                        x-on:click="
+                                            holdTypeSelectedId = holdType.id;
+                                            $store.holdsEditorService.selectedHoldTypeId = holdTypeSelectedId;
+                                        ">
+                                        {# <span x-bind:style="holdTypeSelectedId !== holdType.id ? `color: ${holdType.colour};` : ''"> #}
+                                        <span x-bind:style="`color: ${holdType.colour};`">
+                                            {% icon 'circle', { height: '18px', hasMarginRight: true } %}
+                                        </span>
+                                        <span x-text="holdType.text"></span>
+                                    </button>
+                                </template>
                             </div>
-                            {% endif %}
-                            {% if config.featureFlags.holdsEditorZoom %}
-                            <!-- Zoom Feature -->
-                            <div class="button-group">
-                                <button type="button" class="button-group-item" 
-                                    x-on:click="$store.holdsEditorService.zoomOut()">
-                                    {% icon 'zoom-out', { height: '18px' } %}
-                                </button>
-                                <button type="button" class="button-group-item"
-                                    x-on:click="$store.holdsEditorService.zoomIn()">
-                                    {% icon 'zoom-in', { height: '18px' } %}
-                                </button>
+                            <div class="flex flex-row flex-nowrap space-x-2">
+                                {% if config.featureFlags.holdsEditorUndo %}
+                                <div class="button-group">
+                                    <button type="button" class="button-group-item">
+                                        {% icon 'rotate-ccw', { height: '18px' } %}
+                                    </button>
+                                </div>
+                                {% endif %}
+                                {% if config.featureFlags.holdsEditorZoom %}
+                                <!-- Zoom Feature -->
+                                <div class="button-group">
+                                    <button type="button" class="button-group-item" 
+                                        x-on:click="$store.holdsEditorService.zoomOut()">
+                                        {% icon 'zoom-out', { height: '18px' } %}
+                                    </button>
+                                    <button type="button" class="button-group-item"
+                                        x-on:click="$store.holdsEditorService.zoomIn()">
+                                        {% icon 'zoom-in', { height: '18px' } %}
+                                    </button>
+                                </div>
+                                {% endif %}
                             </div>
-                            {% endif %}
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        </template>
     </main>
 <div>
 {% endblock %}

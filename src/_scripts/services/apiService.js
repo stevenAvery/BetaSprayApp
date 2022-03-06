@@ -2,14 +2,16 @@
 const data = [
     {
         id: "w01",
+        slug: "wall-1",
         name: "Wall 1",
         adminName: "Steven Climbs",
+        defaultWallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
         problemsCount: 9,
         minVGrade: 1,
         maxVGrade: 10,
         problems: [
             {
-                id: "p01",
+                id: "p0",
                 name: "Easy Problem",
                 vGrade: 2,
                 setterName: "Steven Climbs",
@@ -45,7 +47,7 @@ const data = [
                 ],
             },
             {
-                id: "p03",
+                id: "p1",
                 name: "Intermediate Problem",
                 vGrade: 5,
                 setterName: "Steven Climbs",
@@ -56,7 +58,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p04",
+                id: "p2",
                 name: "Hard Problem",
                 vGrade: 10,
                 setterName: "Steven Climbs",
@@ -67,7 +69,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p05",
+                id: "p3",
                 name: "Placeholder Problem 1",
                 vGrade: 1,
                 setterName: "Placeholder Setter",
@@ -78,7 +80,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p06",
+                id: "p4",
                 name: "Placeholder Problem 2",
                 vGrade: 2,
                 setterName: "Placeholder Setter",
@@ -89,7 +91,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p07",
+                id: "p5",
                 name: "Placeholder Problem 3",
                 vGrade: 3,
                 setterName: "Placeholder Setter",
@@ -100,7 +102,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p08",
+                id: "p6",
                 name: "Placeholder Problem 4",
                 vGrade: 4,
                 setterName: "Placeholder Setter",
@@ -111,7 +113,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p09",
+                id: "p7",
                 name: "Placeholder Problem 5",
                 vGrade: 5,
                 setterName: "Placeholder Setter",
@@ -122,7 +124,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p10",
+                id: "p8",
                 name: "Placeholder Problem 6",
                 vGrade: 6,
                 setterName: "Placeholder Setter",
@@ -136,14 +138,16 @@ const data = [
     },
     {
         id: "w02",
+        slug: "wall-2",
         name: "Wall 2",
         adminName: "Wall O'Admin",
+        defaultWallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
         problemsCount: 2,
         minVGrade: 2,
         maxVGrade: 4,
         problems: [
             {
-                id: "p02",
+                id: "p0",
                 name: "Easy Problem for Wall 2",
                 vGrade: 2,
                 setterName: "Steven Climbs",
@@ -154,7 +158,7 @@ const data = [
                 holds: [],
             },
             {
-                id: "p05",
+                id: "p1",
                 name: "Another Probem - Wall 2",
                 vGrade: 4,
                 setterName: "Steven Climbs",
@@ -168,8 +172,10 @@ const data = [
     },
     {
         id: "w03",
+        slug: "an-empty-wall",
         name: "An Empty Wall",
         adminName: "Someone Lonely",
+        defaultWallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
         problemsCount: 0,
         minVGrade: null,
         maxVGrade: null,
@@ -177,30 +183,58 @@ const data = [
     }
 ];
 
+const summarizeWall = (wall) => ({ 
+    id: wall.id, 
+    slug: wall.slug,
+    name: wall.name,
+    adminName: wall.adminName,
+    defaultWallImageUrl: wall.defaultWallImageUrl,
+    problemsCount: wall.problemsCount,
+    minVGrade: wall.minVGrade,
+    maxVGrade: wall.maxVGrade,
+});
+
 module.exports = {
-    getWalls(options = {}) {
+    getWallsSummaries(options = {}) {
         const { 
-            searchFor = null,
+            searchFor = null, // TODO searchFor mock up
         } = options;
-        const allWalls = data.map(wall => ({ 
-            id: wall.id, 
-            name: wall.name,
-            adminName: wall.adminName,
-            problemsCount: wall.problemsCount,
-            minVGrade: wall.minVGrade,
-            maxVGrade: wall.maxVGrade,
-        }));
-        return allWalls; // TODO searchFor mock up
+        const allWalls = data.map(wall => summarizeWall(wall));
+        return allWalls;
     },
     getWall(wallId) {
         return data.find(wall => wall.id === wallId);
     },
+    getWallSummary(wallId) {
+        const wall = data.find(wall => wall.id === wallId);
+        if (wall == null)
+            return null;
+
+        return summarizeWall(wall);
+    },
     getProblemsForWall(wallId) {
+        // include wall summary?
         const problems = this.getWall(wallId)?.problems ?? [];
         return problems;
     },
     getProblem(wallId, problemId) { 
         const problems = this.getProblemsForWall(wallId);
-        return problems?.find(problem => problem.id === problemId) ?? []; 
+        return problems?.find(problem => problem.id === problemId) ?? null; 
+    },
+    createProblem(wallId, problem) {
+        console.log(`Creating problem for ${wallId}...`);
+        console.log(problem);
+
+        const wallIndex = data.findIndex(wall => wall.id === wallId);
+        if (wallIndex < 0)
+            return problem;
+
+        problem.id = 'p' + data[wallIndex].problemsCount;
+
+        return problem; // return the updated problem with id
+    },
+    updateProblem(wallId, problem) {
+        console.log(`Updating problem for ${wallId}...`);
+        console.log(problem);
     },
 };
