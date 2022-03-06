@@ -13,6 +13,7 @@
         isNewProblem: false,
         isExistingProblem: true,
         isValidParameters: true,
+        isEditing: false,
     }"
     x-init="
         problem = hasWallId && hasProblemId ? $store.apiService.getProblem(wallId, problemId) : {};
@@ -22,7 +23,7 @@
     ">
 
     <!-- Subnav -->
-    <div x-show="isValidParameters" class="container-w h-10">
+    <div x-cloak x-show="isValidParameters" class="container-w h-10">
         <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
             <div class="flex flex-row">
                 <a 
@@ -34,13 +35,26 @@
             </div>
             <div x-show="hasProblemId" class="flex flex-row">
                 <a
-                    x-show="isExistingProblem"
-                    href="/"
+                    x-show="isExistingProblem && !isEditing"
+                    x-on:click="
+                        isEditing = true;
+                        $dispatch('is-editing-updated', { isEditing: isEditing })
+                    "
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'edit', style: 'py-1' } %}Edit{% endiconlabel %}
                 </a>
+                <a
+                    x-show="isExistingProblem && isEditing"
+                    x-on:click="
+                        // TODO update problem
+                        isEditing = false;
+                        $dispatch('is-editing-updated', { isEditing: isEditing })
+                    "
+                    class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
+                    {% iconlabel { icon: 'save', style: 'py-1' } %}Save{% endiconlabel %}
+                </a>
                 {% if config.featureFlags.problemDelete %}
-                <a 
+                <a
                     href="/"
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'trash', style: 'py-1' } %}Delete{% endiconlabel %}
@@ -71,7 +85,8 @@
                     <input 
                         id="problemName" 
                         type="text" 
-                        class="input-enabled" 
+                        class="input-text"
+                        x-bind:disabled="!isEditing"
                         x-model="problem.name" />
                 </div>
 
@@ -81,7 +96,8 @@
                     <input 
                         id="problemVGrade" 
                         type="number" 
-                        class="input-enabled" 
+                        class="input-text"
+                        x-bind:disabled="!isEditing"
                         x-model="problem.vGrade" />
                 </div>
 
@@ -89,9 +105,10 @@
                 <div class="mb-2">
                     <label for="problemSetterName" class="input-label">Setter</label>
                     <input 
-                        id="problemSetterName" 
-                        type="text" 
-                        class="input-enabled" 
+                        id="problemSetterName"
+                        type="text"
+                        class="input-text"
+                        x-bind:disabled="!isEditing"
                         x-model="problem.setterName" />
                 </div>
 
@@ -99,9 +116,10 @@
                 <div class="mb-2">
                     <label for="problemDescription" class="input-label">Description</label>
                     <textarea 
-                        id="problemDescription" 
+                        id="problemDescription"
                         rows="3"
-                        class="input-enabled" 
+                        class="input-text"
+                        x-bind:disabled="!isEditing"
                         x-model="problem.description">
                     </textarea>
                 </div>
@@ -117,11 +135,13 @@
                         holdTypes: $store.utilService.getAllHoldTypes(),
                         holdTypeSelectedId: 0,
                     }"
-                    class="flex flex-col">
-
+                    class="flex flex-col" >
                     <div 
                         id="holds" 
-                        class="holds-editor-size holds-editor-input-enabled overflow-auto"
+                        x-bind:class="{
+                            'holds-editor-size overflow-auto input-holds-editor': true, 
+                            'input-holds-editor-disabled': !isEditing
+                        }"
                         x-init="
                             // $store.holdsEditorService.wallImageUrl = problem.wallImageUrl;
                             $store.holdsEditorService.problem = problem;
@@ -129,10 +149,10 @@
                         x-on:hold-added="
                             problem.holds.push($event.detail.hold);
                             $store.holdsEditorService.problem = problem;
-                        ">
+                        " >
                         {% include 'holdsEditorComponent.njk' %}
                     </div>
-                    <div class="mt-2 flex flex-row justify-between space-x-2">
+                    <div x-show="isEditing" class="mt-2 flex flex-row justify-between space-x-2">
                         <div class="button-group">
                             <template x-for="holdType in holdTypes">
                                 <button 

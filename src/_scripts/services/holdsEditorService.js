@@ -1,5 +1,5 @@
 
-const HOLD_LINE_WIDTH = 2;
+const HOLD_LINE_WIDTH = 3;
 
 // Resizes the given canvas to fit its contianer 
 function fitCanvasToContainer(canvas, holdsEditorContainer) {
@@ -60,9 +60,10 @@ function getHoldColour(allHoldTypes, holdTypeId) {
     return holdType?.colour ?? 'rgb(0, 0, 0)';
 }
 
-function render(ctx, wallImage, problem, allHoldTypes) {
+function render(ctx, wallImage, problem, allHoldTypes, isEditing = false) {
     // Clear background
-    ctx.fillStyle = '#FFFFFF';
+    ctx.fillStyle = isEditing ? '#FFFFFF' : '#F1F5F9';
+
     ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
     // Draw wall image

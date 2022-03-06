@@ -47,9 +47,13 @@ html {
     @apply text-sm text-slate-500 mb-1;
 }
 
-.input-enabled {
+.input-text {
     @apply text-sm w-full px-2 py-1 rounded-lg;
-    @apply bg-white text-slate-600 border border-slate-300 focus:border-blue-500;
+    @apply bg-white text-slate-600 border border-slate-300;
+    @apply focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500;
+    @apply disabled:bg-slate-100 disabled:border-slate-200 disabled:text-slate-500 disabled:shadow-none;
+    @apply invalid:border-pink-500 invalid:text-pink-600 ;
+    @apply focus:invalid:border-pink-500 focus:invalid:ring-pink-500;
 }
 
 .button-group {
@@ -71,8 +75,15 @@ html {
     height: calc(100vh - 250px);
 }
 
-.holds-editor-input-enabled {
+.input-holds-editor {
     @apply rounded-lg bg-white border border-slate-300;
+    @apply cursor-crosshair;
+}
+
+.input-holds-editor-disabled {
+    @apply rounded-lg border;
+    @apply bg-slate-100 border-slate-200 shadow-none;
+    @apply cursor-default;
 }
 
 @tailwind utilities;

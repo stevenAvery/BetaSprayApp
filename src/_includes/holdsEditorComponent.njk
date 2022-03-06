@@ -33,7 +33,8 @@
                         this.ctx, 
                         utils.wallImage, 
                         $store.holdsEditorService.problem, 
-                        allHoldTypes);
+                        allHoldTypes,
+                        isEditing);
                     this.ctx = renderResult.ctx;
                     utils.wallImageTransform = renderResult.wallImageTransform;
 
@@ -41,6 +42,9 @@
                 }
             };
             this.startNewHold = (mouseDownEvent) => {
+                if (!isEditing)
+                    return;
+
                 const ctxPoint = utils.getCtxPoint(this.canvas, mouseDownEvent);
                 const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
 
@@ -56,6 +60,9 @@
                 }
             };
             this.finishNewHold = (mouseUpEvent) => { 
+                if (!isEditing || utils.newHold == null)
+                    return;
+
                 const ctxPoint = utils.getCtxPoint(this.canvas, mouseUpEvent);
                 const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
 
@@ -87,6 +94,9 @@
                 this.updateCanvasIfPossible();
             });
 
+        "
+        x-on:is-editing-updated.window="
+            this.updateCanvasIfPossible();
         "
         x-on:resize.window="
             this.updateCanvasIfPossible();
