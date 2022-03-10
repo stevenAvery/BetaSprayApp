@@ -7,12 +7,11 @@
 - [Tailwind CLI](https://tailwindcss.com/docs/installation)
 - [NVM](https://github.com/nvm-sh/nvm)
 - [Feather Icons](https://feathericons.com)
+- [Netlify](https://www.netlify.com/)
 
 ## Getting Started:
 - `nvm use` to switch to the valid node version
-- `npm i` to install all dependencies and build the `node_modules` folder
+- `npm install` to install all dependencies and build the `node_modules` folder
 - `npm run serve` to spin up a live-reloading dev server
+- `netlify dev` to start a live reloading server with netlify functions running
 - `npm run build` to build your production-ready site
-
-### Tip:
-Running `npm run build && npx serve dist` will boot up a local server of your production site to preview before deployment.
