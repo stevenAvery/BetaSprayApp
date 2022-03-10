@@ -3,14 +3,20 @@
 
 {% block body %}
 <div
+    x-cloak
     x-data="{
-        walls: [] 
+        walls: [],
+        isLoading: true,
     }"
     x-init="
-        walls = $store.apiService.getWallsSummaries();
-    ">
+        walls = await $store.apiService.getWallsSummariesAsync();
+        isLoading = false;
+    "
+    class="w-full h-full">
 
-    <main class="container-w px-6 pt-4 pb-8">
+    {% loading { while: 'isLoading' } %}
+
+    <main x-show="!isLoading" class="container-w px-6 pt-4 pb-8">
         <div
             class="grid grid-auto-fit-200px gap-3 auto-rows-fr">
             <template x-for="wall in walls">

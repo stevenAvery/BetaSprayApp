@@ -4,6 +4,7 @@
 
 {% block body %}
 <div
+    x-cloak
     x-data="{
         hasWallId: new URLSearchParams(location.search).has('wallId'),
         wallId: new URLSearchParams(location.search).get('wallId'),
@@ -15,18 +16,23 @@
         isExistingProblem: true,
         isValidParameters: true,
         isEditing: false,
+        isLoading: true,
     }"
     x-init="
         isNewProblem = hasWallId && !hasProblemId;
         isExistingProblem = hasWallId && hasProblemId;
         isValidParameters = isNewProblem || isExistingProblem;
 
-        wall = hasWallId ? $store.apiService.getWallSummary(wallId) : {};
+        if (hasWallId) {
+            wall = await $store.apiService.getWallSummaryAsync(wallId);
+        } else {
+            wall = {};
+        }
         if (wall == null)
             isValidParameters = false;
 
         if (isValidParameters && isExistingProblem) {
-            problem = $store.apiService.getProblem(wallId, problemId);
+            problem = await $store.apiService.getProblemAsync(wallId, problemId);
             if (problem === null)
                 isValidParameters = false;
         } else if (isValidParameters && isNewProblem) {
@@ -35,10 +41,15 @@
             isEditing = true;
             $dispatch('is-editing-updated', { isEditing: isEditing });
         }
-    ">
+
+        isLoading = false;
+    "
+    class="h-full">
+
+    {% loading { while: 'isLoading' } %}
 
     <!-- Subnav -->
-    <div x-cloak x-show="isValidParameters" class="container-w h-10">
+    <div x-cloak x-show="!isLoading && isValidParameters" class="container-w h-10">
         <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
             <div class="flex flex-row">
                 <a 
@@ -65,9 +76,9 @@
                         $dispatch('is-editing-updated', { isEditing: isEditing });
 
                         if (isExistingProblem) {
-                            $store.apiService.updateProblem(wallId, problem);
+                            await $store.apiService.updateProblemAsync(wallId, problem);
                         } else if (isNewProblem) {
-                            problem = $store.apiService.createProblem(wallId, problem);
+                            problem = await $store.apiService.createProblem(wallId, problem);
 
                             isNewProblem = false;
                             isExistingProblem = true;
@@ -93,8 +104,8 @@
     </div>
 
     <!-- Content -->
-    <main x-cloak class="container-w px-6 pt-4 pb-8">
-        <div x-show="!isValidParameters">
+    <main x-cloak x-show="!isLoading" class="container-w px-6 pt-4 pb-8">
+        <div x-show="!isLoading && !isValidParameters">
             <h2 class="text-2xl text-slate-700">Invalid URL Parameters</h2>
             <p x-show="!hasWallId" class="text-sm text-slate-500">No wall id given.</p>
             <p x-show="wall === null" class="text-sm text-slate-500">Wall not found.</p>
@@ -104,10 +115,10 @@
 
         <!-- Problem Details -->
         <template
-            x-if="isValidParameters"
+            x-if="!isLoading && isValidParameters"
             class="w-full h-full m-0 p-0">
             <div
-                x-show="isValidParameters"
+                {# x-show="isValidParameters" #}
                 class="grid grid-cols-1 md-grid-cols-1/3-2/3 gap-4">
 
                 <!-- Left Section -->
@@ -163,7 +174,7 @@
                     <label for="holds" class="input-label">Holds</label>
 
                     <!-- Holds Editor Component -->
-                    <div 
+                    <div
                         x-data="{
                             holdTypes: $store.utilService.getAllHoldTypes(),
                             holdTypeSelectedId: 0,

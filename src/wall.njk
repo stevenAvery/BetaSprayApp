@@ -4,19 +4,32 @@
 
 {% block body %}
 <div
+    x-cloak
     x-data="{
         hasWallId: new URLSearchParams(location.search).has('wallId'),
         wallId: new URLSearchParams(location.search).get('wallId'),
         problems: [],
         isValidParameters: true,
+        isLoading: true,
     }"
     x-init="
-        problems = hasWallId ? $store.apiService.getProblemsForWall(wallId) : [];
         isValidParameters = hasWallId;
-    ">
+
+        if (isValidParameters) {
+            problems = await $store.apiService.getProblemsForWallAsync(wallId);
+        }
+
+        console.log('isLoading done');
+        console.log(problems);
+        isLoading = false;
+    "
+    class="w-full h-full">
+
+    {% loading { while: 'isLoading' } %}
+
 
     <!-- Subnav -->
-    <div x-show="isValidParameters" class="container-w h-10">
+    <div x-show="!isLoading && isValidParameters" class="container-w h-10">
         <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
             <div class="flex flex-row">
                 {% if config.featureFlags.wallFilter %}
@@ -47,7 +60,7 @@
     </div>
 
     <!-- Content -->
-    <main class="container-w px-6 pt-4 pb-8">
+    <main x-show="!isLoading" class="container-w px-6 pt-4 pb-8">
         <div x-cloak x-show="!isValidParameters">
             <h2 class="text-2xl text-slate-700">Invalid URL Parameters</h2>
             <p x-show="!hasWallId" class="text-sm text-slate-500">No wall id given.</p>

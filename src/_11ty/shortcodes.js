@@ -26,7 +26,11 @@ module.exports = {
             return getIcon(icon, options);
         },
         loading: (options = {}) => {
-            let whileCondition = options['while'] ?? 'true';
+            const whileCondition = options['while'] ?? 'true';
+            const message = options['message'] ?? '';
+            const messageMarkup = message !== '' 
+                ? `<span class='ml-2 text-base text-slate-500'>${message}</span>` 
+                : '';
             
             return `
             <div
@@ -37,6 +41,7 @@ module.exports = {
                     rounded-full border-[3px] border-slate-400 border-r-transparent 
                     h-6 w-6">
                 </span>
+                ${messageMarkup}
             </div>
             `;
         },

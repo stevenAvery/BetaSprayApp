@@ -195,7 +195,7 @@ const summarizeWall = (wall) => ({
     maxVGrade: wall.maxVGrade,
 });
 
-async function getWalls() {
+async function getWallsAsync() {
     try {
         // TODO set base route for api in config
         const response = await fetch(`${baseUrl}/walls`);
@@ -212,34 +212,51 @@ async function getWalls() {
 }
 
 module.exports = {
-    // TODO make all of these async
-    getWallsSummaries(options = {}) {
-        const { 
-            searchFor = null, // TODO searchFor mock up
-        } = options;
-        const allWalls = data.map(wall => summarizeWall(wall));
-        return allWalls;
+    async getWallsSummariesAsync() {
+        const walls = await getWallsAsync();
+        return walls.map(wall => summarizeWall(wall));
     },
-    getWall(wallId) {
-        return data.find(wall => wall.id === wallId);
+    async getWallAsync(wallId) {
+        if (wallId == null)
+            return null;
+
+        const walls = await getWallsAsync();
+        return walls.find(wall => wall.id === wallId);
     },
-    getWallSummary(wallId) {
-        const wall = data.find(wall => wall.id === wallId);
+    async getWallSummaryAsync(wallId) {
+        if (wallId == null)
+            return null;
+
+        const walls = await getWallsAsync();
+        const wall = walls.find(wall => wall.id === wallId);
         if (wall == null)
             return null;
 
         return summarizeWall(wall);
     },
-    getProblemsForWall(wallId) {
-        // include wall summary?
-        const problems = this.getWall(wallId)?.problems ?? [];
+    async getProblemsForWallAsync(wallId) {
+        if (wallId == null)
+            return null;
+
+        const wall = await this.getWallAsync(wallId);
+        if (wall == null)
+            return null;
+
+        const problems = wall.problems ?? [];
+
         return problems;
     },
-    getProblem(wallId, problemId) { 
-        const problems = this.getProblemsForWall(wallId);
-        return problems?.find(problem => problem.id === problemId) ?? null; 
+    async getProblemAsync(wallId, problemId) {
+        if (wallId == null || problemId == null)
+            return null;
+
+        const problems = await this.getProblemsForWallAsync(wallId);
+        if (problems == null)
+            return null;
+
+        return problems.find(problem => problem.id === problemId); 
     },
-    createProblem(wallId, problem) {
+    createProblemAsync(wallId, problem) {
         console.log(`Creating problem for ${wallId}...`);
         console.log(problem);
 
@@ -251,7 +268,7 @@ module.exports = {
 
         return problem; // return the updated problem with id
     },
-    updateProblem(wallId, problem) {
+    updateProblemAsync(wallId, problem) {
         console.log(`Updating problem for ${wallId}...`);
         console.log(problem);
     },

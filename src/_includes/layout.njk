@@ -14,8 +14,11 @@
 </head>
 <body class="bg-light">
     {% include 'navbar.njk' %}
-    {% block body %}
-        {{ content | safe }}
-    {% endblock %}
+    {# Compensate for navbar #}
+    <div class="w-full h-full m-0 p-0 pt-10">
+        {% block body %}
+            {{ content | safe }}
+        {% endblock %}
+    </div>
 </body>
 </html>
