@@ -1,4 +1,5 @@
 
+const baseUrl = '/api'
 const data = [
     {
         id: "w01",
@@ -197,7 +198,7 @@ const summarizeWall = (wall) => ({
 async function getWalls() {
     try {
         // TODO set base route for api in config
-        const response = await fetch("/.netlify/functions/walls");
+        const response = await fetch(`${baseUrl}/walls`);
 
         if (!response.ok) {
             throw new Error(`HTTP error: ${response.status}`);
