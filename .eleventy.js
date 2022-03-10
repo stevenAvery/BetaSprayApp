@@ -10,7 +10,7 @@ module.exports = (config) => {
 
     config.setBrowserSyncConfig({
         files: ['dist/**/*'],
-        open: true,
+        open: false, // automatically opens a path when serving
     });
 
 

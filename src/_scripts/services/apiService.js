@@ -194,7 +194,24 @@ const summarizeWall = (wall) => ({
     maxVGrade: wall.maxVGrade,
 });
 
+async function getWalls() {
+    try {
+        // TODO set base route for api in config
+        const response = await fetch("/.netlify/functions/walls");
+
+        if (!response.ok) {
+            throw new Error(`HTTP error: ${response.status}`);
+        }
+
+        const walls = await response.json();
+        return walls;
+    } catch(err) {
+        console.error(`Could not get walls: ${error}`);
+    }
+}
+
 module.exports = {
+    // TODO make all of these async
     getWallsSummaries(options = {}) {
         const { 
             searchFor = null, // TODO searchFor mock up

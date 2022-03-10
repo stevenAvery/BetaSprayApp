@@ -1,0 +1,17 @@
+[build]
+    command = "npm run build"
+    publish = "dist"
+
+[functions]
+    directory = "functions"
+
+[dev]
+    command = "npm run serve"
+    targetPort = 8080
+    port = 8081
+    autoLaunch = true
+
+[[redirects]]
+   from = "/*"
+   to = "/404/index.html"
+   status = 404

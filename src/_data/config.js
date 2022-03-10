@@ -7,6 +7,8 @@ module.exports = {
         holdsEditorZoom: false,
         holdsEditorUndo: false,
         problemDelete:   false,
+        wallFilter:      false,
+        wallSettings:    false,
     },
     appTitle: 'BetaSpray',
 };

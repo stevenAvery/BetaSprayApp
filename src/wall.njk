@@ -19,6 +19,7 @@
     <div x-show="isValidParameters" class="container-w h-10">
         <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
             <div class="flex flex-row">
+                {% if config.featureFlags.wallFilter %}
                 <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" href="/wall/">
                     {% iconlabel { icon: 'search', style: 'py-1' } %}Search{% endiconlabel %}
                 </a>
@@ -28,6 +29,7 @@
                 <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" href="/wall/">
                     {% iconlabel { icon: 'bar-chart', style: 'py-1' } %}Sort{% endiconlabel %}
                 </a>
+                {% endif %}
                 <a 
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" 
                     x-on:click="window.location = `/problem/?wallId=${wallId}`" >
@@ -35,9 +37,11 @@
                 </a>
             </div>
             <div class="flex flex-row">
+                {% if config.featureFlags.wallSettings %}
                 <a class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'settings', style: 'py-1' } %}Settings{% endiconlabel %}
                 </a>
+                {% endif %}
             </div>
         </div>
     </div>
