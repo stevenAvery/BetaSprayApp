@@ -1,5 +1,3 @@
-const { ApolloServer, gql } = require('apollo-server-lambda')
-
 const walls = [{
     id: "w01",
     slug: "wall-1",
@@ -162,54 +160,6 @@ const walls = [{
     problems: [],
 }];
 
-const typeDefs = gql`
-    type Query {
-        walls: [Wall!]!
-    }
-
-    type Wall {
-        id: ID!
-        slug: String!
-        name: String!
-        adminName: String!
-        defaultWallImageUrl: String!
-        problemsCount: Int!
-        minVGrade: Int
-        maxVGrade: Int
-        problems: [Problem!]!
-    }
-
-    type Problem {
-        id: ID!
-        name: String!
-        vGrade: Int!
-        setterName: String!
-        description: String!
-        wallImageUrl: String!
-        likeCount: Int!
-        sendCount: Int!
-        holds: [Hold!]!
-    }
-
-    type Hold {
-        typeId: Int! # TODO use enum?
-        x: Float!
-        y: Float!
-        r: Float!
-    }
-`;
-
-const resolvers = {
-    Query: {
-        walls: (root, args, context) => {
-            return walls;
-        }
-    }
-};
-
-const server = new ApolloServer({
-    typeDefs,
-    resolvers
-});
-
-exports.handler = server.createHandler();
+module.exports = {
+    getWalls: () => walls,
+}
