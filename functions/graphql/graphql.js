@@ -1,5 +1,12 @@
 const { ApolloServer, gql } = require('apollo-server-lambda');
-const { getWalls } = require('./wallsRepository.js');
+// const { getWalls } = require('./wallsRepository.js');
+const { 
+    createWallAsync,
+    getWallsAsync, 
+    getWallAsync, 
+    createProblemAsync,
+    getProblemAsync,
+} = require('./repository.js');
 
 
 const typeDefs = gql`
@@ -10,12 +17,13 @@ const typeDefs = gql`
     }
 
     type Mutation {
-        createProblem(problem: CreateProblemInput!): Problem
+        createWall(wall: CreateWallInput): WallResponse
+        createProblem(wallSlug: String!, problem: CreateProblemInput!): ProblemResponse
     }
 
     type Error {
-        title: String!
-        details: String!
+        name: String!
+        message: String!
     }
 
     # Walls query
@@ -25,8 +33,8 @@ const typeDefs = gql`
     }
 
     type WallsResponse {
-        errors: [Error!]!
-        walls: [Wall!]!
+        errors: [Error!]
+        walls: [Wall!]
     }
 
     # Walls query
@@ -36,14 +44,21 @@ const typeDefs = gql`
     }
 
     type WallResponse {
-        errors: [Error!]!
+        errors: [Error!]
         wall: Wall
     }
 
     # Problem Query
     type ProblemResponse {
-        errors: [Error!]!
+        errors: [Error!]
         problem: Problem
+    }
+
+    # Create wall mutation
+    input CreateWallInput {
+        name: String!
+        adminName: String!
+        defaultWallImageUrl: String!
     }
 
     # Create problem mutation
@@ -52,9 +67,6 @@ const typeDefs = gql`
         vGrade: Int!
         setterName: String!
         description: String!
-        wallImageUrl: String!
-        likeCount: Int!
-        sendCount: Int!
         holds: [HoldInput!]!
     }
 
@@ -67,8 +79,7 @@ const typeDefs = gql`
 
     # Type definitions
     type Wall {
-        id: ID!
-        slug: String!
+        slug: ID!
         name: String!
         adminName: String!
         defaultWallImageUrl: String!
@@ -79,9 +90,9 @@ const typeDefs = gql`
     }
 
     type Problem {
-        id: ID!
+        id: String!
         name: String!
-        vGrade: Int!
+        vGrade: Int
         setterName: String!
         description: String!
         wallImageUrl: String!
@@ -101,128 +112,142 @@ const typeDefs = gql`
 const resolvers = {
     Query: {
         walls: async (parent, args, context) => {
-            console.log("TESINTG");
             const { filter } = args;
-            let walls = getWalls();
 
-            if (filter == null) {
+            try {
+                const walls = await getWallsAsync();
                 return {
-                    errors: [],
-                    walls,
+                    walls
+                };
+            } catch (err) {
+                return {
+                    errors: [{
+                        name: err.name,
+                        message: err.message,
+                    }]
                 }
             }
-
-            const hasNameContainsFilter = filter?.nameContains != null;
-            const nameContainsLower     = filter?.nameContains?.toLocaleLowerCase();
-            
-            walls = walls.filter((wall) => {
-                // Name contains filter
-                if (hasNameContainsFilter && !wall?.name?.toLocaleLowerCase()?.includes(nameContainsLower)) {
-                    return false;
-                }
-
-                return true;
-            });
-
-            return {
-                errors: [],
-                walls,
-            };
         },
         wall: async (parent, args, context) => {
             const { slug, filter } = args;
-            const hasMinVGradeFilter = filter?.minVGrade != null;
-            const hasMaxVGradeFilter = filter?.maxVGrade != null;
-            const hasProblemFilter = hasMinVGradeFilter || hasMaxVGradeFilter;
+            // const hasMinVGradeFilter = filter?.minVGrade != null;
 
             if (slug == null || slug === '') {
                 return {
                     errors: [{
-                        title: 'Invalid input',
+                        name: 'Invalid input',
                         message: 'Slug is required to find a wall.',
                     }],
-                    wall: null,
                 };
             }
 
-            const wall = getWalls()?.find((wall) => wall?.slug === slug);
-
-            if (wall == null) {
+            try {
+                const wall = await getWallAsync(slug);
+                return {
+                    wall,
+                };
+            } catch (err) {
                 return {
                     errors: [{
-                        title: 'Invalid input',
-                        message: 'Unable to find any walls with the given slug.',
-                    }],
-                    wall: null,
-                };
+                        name: err.name,
+                        message: err.message,
+                    }]
+                }
             }
-
-            if (hasProblemFilter) {
-                wall.problems = wall.problems.filter((problem) => {
-                    // Min vGrade filter
-                    if (hasMinVGradeFilter && problem?.vGrade < filter?.minVGrade)
-                        return false
-                    // Max vGrade filter
-                    if (hasMaxVGradeFilter && problem?.vGrade > filter?.maxVGrade)
-                        return false
-
-                    return true
-                });
-            }
-
-            return {
-                errors: [],
-                wall,
-            };
         },
         problem: async (parent, args, context) => {
             const { slug, id } = args;
 
-            if (slug == null || id == null) {
+            try {
+                const problem = await getProblemAsync(slug, id);
+                return {
+                    problem
+                };
+            } catch (err) {
                 return {
                     errors: [{
-                        title: 'Invalid input',
-                        message: 'Wall slug and problem id are required to find a problem.',
-                    }],
-                    problem: null,
-                };
+                        name: err.name,
+                        message: err.message,
+                    }]
+                }
             }
-
-            // Find wall
-            const wall = getWalls()?.find((wall) => wall?.slug === slug);
-            if (wall == null) {
-                return {
-                    errors: [{
-                        title: 'Invalid input',
-                        message: 'Unable to find any walls with the given slug.',
-                    }],
-                    problem: null,
-                };
-            }
-
-            // Find problem
-            const problem = wall?.problems?.find((problem) => problem?.id === id);
-            if (problem == null) {
-                return {
-                    errors: [{
-                        title: 'Invalid input',
-                        message: 'Unable to find any problems with the given problem id.',
-                    }],
-                    wall: null,
-                };
-            }
-
-            return {
-                errors: [],
-                problem,
-            };
         },
+        // problem: async (parent, args, context) => {
+        //     const { slug, id } = args;
+
+        //     if (slug == null || id == null) {
+        //         return {
+        //             errors: [{
+        //                 title: 'Invalid input',
+        //                 message: 'Wall slug and problem id are required to find a problem.',
+        //             }],
+        //             problem: null,
+        //         };
+        //     }
+
+        //     // Find wall
+        //     const wall = getWalls()?.find((wall) => wall?.slug === slug);
+        //     if (wall == null) {
+        //         return {
+        //             errors: [{
+        //                 title: 'Invalid input',
+        //                 message: 'Unable to find any walls with the given slug.',
+        //             }],
+        //         };
+        //     }
+
+        //     // Find problem
+        //     const problem = wall?.problems?.find((problem) => problem?.id === id);
+        //     if (problem == null) {
+        //         return {
+        //             errors: [{
+        //                 title: 'Invalid input',
+        //                 message: 'Unable to find any problems with the given problem id.',
+        //             }],
+        //         };
+        //     }
+
+        //     return {
+        //         problem,
+        //     };
+        // },
     },
     Mutation: {
-        createProblem: async (parent, args, context) => {
-            const { problem } = args;
+        createWall: async (parent, args, context) => {
+            const { wall } = args;
 
-            // TODO
+            try {
+                const wallResult = await createWallAsync(wall);
+    
+                return {
+                    wall: wallResult
+                }
+            } catch (err) {
+                return {
+                    errors: [{
+                        name: err.name,
+                        message: err.message,
+                    }]
+                }
+            }
+        },
+        createProblem: async (parent, args, context) => {
+            const { wallSlug, problem } = args;
+
+            try {
+                const problemResult = await createProblemAsync(wallSlug, problem);
+    
+                return {
+                    problem: problemResult
+                }
+            } catch (err) {
+                return {
+                    errors: [{
+                        name: err.name,
+                        message: err.message,
+                    }]
+                }
+            }
         },
     },
 };
