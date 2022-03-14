@@ -20,7 +20,7 @@ const problemSchema = new mongoose.Schema({
     likeCount:    { type: Number, required: true, min: 0 },
     sendCount:    { type: Number, required: true, min: 0 },
     holds:        { type: [holdSchema], required: false },
-});
+}, { timestamps: true });
 
 // Automatically create slug for problem based on name
 // problemSchema.plugin(URLSlugs('name', {
@@ -40,7 +40,7 @@ const wallSchema = new mongoose.Schema({
     minVGrade:           { type: Number, min: 0 },
     maxVGrade:           { type: Number, min: 0 },
     problems:            { type: [problemSchema], required: false },
-});
+}, { timestamps: true });
 
 // Automatically create slug for wall based on name
 wallSchema.plugin(URLSlugs('name', {
