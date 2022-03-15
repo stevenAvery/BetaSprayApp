@@ -10,6 +10,7 @@
 - [Netlify](https://www.netlify.com/)
 
 ## Getting Started:
+- `npm run clean-all` remove any dist / node_modules
 - `nvm use` to switch to the valid node version
 - `npm install` to install all dependencies and build the `node_modules` folder
 - `npm run serve` to spin up a live-reloading dev server

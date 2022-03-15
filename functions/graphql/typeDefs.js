@@ -2,56 +2,66 @@ const { gql } = require('apollo-server-lambda');
 
 const typeDefs = gql`
     type Query {
-        walls(filter: WallsFilter): WallsResponse
-        wall(slug: String!, filter: WallFilter): WallResponse
+        getWalls(filter: WallsFilter): [Wall!]!
+        getWall(slug: String!, filter: ProblemsFilter): Wall!
 
-        problem(slug: String!, id: String!): ProblemResponse
+        getProblem(wallSlug: String!, problemId: String!): Problem!
     }
 
     type Mutation {
-        createWall(wall: CreateWallInput): WallResponse
+        createWall(wall: CreateWallInput!): Wall!
 
-        createProblem(wallSlug: String!, problem: CreateProblemInput!): ProblemResponse
-        updateProblem(wallSlug: String!, problem: UpdateProblemInput!): ProblemResponse
-        deleteProblem(wallSlug: String!, problemId: String!): BasicResponse
+        createProblem(wallSlug: String!, problem: CreateProblemInput!): Problem!
+        updateProblem(wallSlug: String!, problem: UpdateProblemInput!): Problem!
+        deleteProblem(wallSlug: String!, problemId: String!): String!
     }
 
-    type Error {
+    # --- Type Definitions -----------------------------------------------------
+    type Wall {
+        slug: ID!
         name: String!
-        message: String!
+        adminName: String!
+        defaultWallImageUrl: String!
+        problemsCount: Int!
+        minVGrade: Int
+        maxVGrade: Int
+        problems: [Problem!]!
     }
 
+    type Problem {
+        id: String!
+        name: String!
+        vGrade: Int
+        setterName: String!
+        description: String!
+        wallImageUrl: String!
+        likeCount: Int!
+        sendCount: Int!
+        holds: [Hold!]!
+        createdAt: String!
+    }
+
+    type Hold {
+        typeId: Int! # TODO use enum?
+        x: Float!
+        y: Float!
+        r: Float!
+    }
+
+    # --- Query Objects --------------------------------------------------------
     # Walls query
     input WallsFilter {
         wallSlug: String
         nameContains: String
     }
 
-    type WallsResponse {
-        success: Boolean!
-        errors: [Error!]
-        walls: [Wall!]
-    }
-
-    # Walls query
-    input WallFilter {
+    # Wall query
+    input ProblemsFilter {
         minVGrade: Int
         maxVGrade: Int
     }
 
-    type WallResponse {
-        success: Boolean!
-        errors: [Error!]
-        wall: Wall
-    }
-
-    # Problem Query
-    type ProblemResponse {
-        success: Boolean!
-        errors: [Error!]
-        problem: Problem
-    }
-
+    # --- Mutation Objects -----------------------------------------------------
     # Create wall mutation
     input CreateWallInput {
         name: String!
@@ -84,43 +94,6 @@ const typeDefs = gql`
         description: String!
         wallImageUrl: String
         holds: [HoldInput!]!
-    }
-
-    # Type definitions
-    type BasicResponse {
-        success: Boolean!
-        errors: [Error!]
-    }
-
-    type Wall {
-        slug: ID!
-        name: String!
-        adminName: String!
-        defaultWallImageUrl: String!
-        problemsCount: Int!
-        minVGrade: Int
-        maxVGrade: Int
-        problems: [Problem!]!
-    }
-
-    type Problem {
-        id: String!
-        name: String!
-        vGrade: Int
-        setterName: String!
-        description: String!
-        wallImageUrl: String!
-        likeCount: Int!
-        sendCount: Int!
-        holds: [Hold!]!
-        createdAt: String!
-    }
-
-    type Hold {
-        typeId: Int! # TODO use enum?
-        x: Float!
-        y: Float!
-        r: Float!
     }
 `;
 

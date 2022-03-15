@@ -3,7 +3,7 @@
 const problemEntityToProblem = (problemEntity) => {
     if (problemEntity == null)
         return null;
-    
+
     return {
         id: problemEntity._id,
         name: problemEntity.name,
@@ -13,7 +13,7 @@ const problemEntityToProblem = (problemEntity) => {
         wallImageUrl: problemEntity.wallImageUrl,
         likeCount: problemEntity.likeCount,
         sendCount: problemEntity.sendCount,
-        holds: problemEntity.holds.map((hold) => {
+        holds: problemEntity.holds?.map((hold) => {
             return {
                 typeId: hold.typeId,
                 x: hold.x,
