@@ -46,7 +46,7 @@
     "
     class="h-full">
 
-    {% loading { while: 'isLoading' } %}
+    {% loading { while: 'isLoading', delayShow: 750 } %}
 
     <!-- Subnav -->
     <div x-cloak x-show="!isLoading && isValidParameters" class="container-w h-10">
