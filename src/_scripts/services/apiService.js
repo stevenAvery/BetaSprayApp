@@ -1,275 +1,221 @@
 
-const baseUrl = '/api'
-const data = [
-    {
-        id: "w01",
-        slug: "wall-1",
-        name: "Wall 1",
-        adminName: "Steven Climbs",
-        defaultWallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-        problemsCount: 9,
-        minVGrade: 1,
-        maxVGrade: 10,
-        problems: [
-            {
-                id: "p0",
-                name: "Easy Problem",
-                vGrade: 2,
-                setterName: "Steven Climbs",
-                description: "This is a very simple description.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 99,
-                sendCount: 100,
-                holds: [
-                    {
-                        typeId: 0, // Start
-                        x: 40.0,
-                        y: 40.0,
-                        r: 20.0,
-                    },
-                    {
-                        typeId: 1, // Foot
-                        x: 80.0,
-                        y: 40.0,
-                        r: 20.0,
-                    },
-                    {
-                        typeId: 2, // Hand/Foot
-                        x: 120.0,
-                        y: 40.0,
-                        r: 20.0,
-                    },
-                    {
-                        typeId: 3, // Finish
-                        x: 160.0,
-                        y: 40.0,
-                        r: 20.0,
-                    }
-                ],
-            },
-            {
-                id: "p1",
-                name: "Intermediate Problem",
-                vGrade: 5,
-                setterName: "Steven Climbs",
-                description: "This is a slightly more complex description.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 1,
-                sendCount: 5467,
-                holds: [],
-            },
-            {
-                id: "p2",
-                name: "Hard Problem",
-                vGrade: 10,
-                setterName: "Steven Climbs",
-                description: "Wow, this problem is so difficult. I can't believe it.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 56,
-                sendCount: 234,
-                holds: [],
-            },
-            {
-                id: "p3",
-                name: "Placeholder Problem 1",
-                vGrade: 1,
-                setterName: "Placeholder Setter",
-                description: "This is a placeholder problem. It is just for testing purposes.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 123,
-                sendCount: 345,
-                holds: [],
-            },
-            {
-                id: "p4",
-                name: "Placeholder Problem 2",
-                vGrade: 2,
-                setterName: "Placeholder Setter",
-                description: "This is a placeholder problem. It is just for testing purposes.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 321,
-                sendCount: 543,
-                holds: [],
-            },
-            {
-                id: "p5",
-                name: "Placeholder Problem 3",
-                vGrade: 3,
-                setterName: "Placeholder Setter",
-                description: "This is a placeholder problem. It is just for testing purposes.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 4567,
-                sendCount: 9753,
-                holds: [],
-            },
-            {
-                id: "p6",
-                name: "Placeholder Problem 4",
-                vGrade: 4,
-                setterName: "Placeholder Setter",
-                description: "This is a placeholder problem. It is just for testing purposes.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 45643,
-                sendCount: 765343,
-                holds: [],
-            },
-            {
-                id: "p7",
-                name: "Placeholder Problem 5",
-                vGrade: 5,
-                setterName: "Placeholder Setter",
-                description: "This is a placeholder problem. It is just for testing purposes.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 13,
-                sendCount: 64,
-                holds: [],
-            },
-            {
-                id: "p8",
-                name: "Placeholder Problem 6",
-                vGrade: 6,
-                setterName: "Placeholder Setter",
-                description: "This is a placeholder problem. It is just for testing purposes.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 6234,
-                sendCount: 34566,
-                holds: [],
-            },
-        ],
-    },
-    {
-        id: "w02",
-        slug: "wall-2",
-        name: "Wall 2",
-        adminName: "Wall O'Admin",
-        defaultWallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-        problemsCount: 2,
-        minVGrade: 2,
-        maxVGrade: 4,
-        problems: [
-            {
-                id: "p0",
-                name: "Easy Problem for Wall 2",
-                vGrade: 2,
-                setterName: "Steven Climbs",
-                description: "This is a very simple description.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 23,
-                sendCount: 100,
-                holds: [],
-            },
-            {
-                id: "p1",
-                name: "Another Probem - Wall 2",
-                vGrade: 4,
-                setterName: "Steven Climbs",
-                description: "This is a very simple description.",
-                wallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-                likeCount: 5005,
-                sendCount: 34567,
-                holds: [],
-            },
-        ],
-    },
-    {
-        id: "w03",
-        slug: "an-empty-wall",
-        name: "An Empty Wall",
-        adminName: "Someone Lonely",
-        defaultWallImageUrl: "/assets/crusher-shop-2022-03-03.jpg",
-        problemsCount: 0,
-        minVGrade: null,
-        maxVGrade: null,
-        problems: [],
-    }
-];
+const baseUrl = '/api';
+const graphQLUrl = `${baseUrl}/graphql`;
 
-const summarizeWall = (wall) => ({ 
-    id: wall.id, 
-    slug: wall.slug,
-    name: wall.name,
-    adminName: wall.adminName,
-    defaultWallImageUrl: wall.defaultWallImageUrl,
-    problemsCount: wall.problemsCount,
-    minVGrade: wall.minVGrade,
-    maxVGrade: wall.maxVGrade,
-});
 
-async function getWallsAsync() {
-    try {
-        // TODO set base route for api in config
-        const response = await fetch(`${baseUrl}/walls`);
+async function graphQLFetcherAsync(query, variables = {}) {
+    const response = await fetch(graphQLUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            query,
+            variables,
+        })
+    });
+    const responseJson = await response.json();
+    
+    // TODO Improve error handling
+    if (responseJson.errors != null && responseJson.errors != [])
+        console.error(responseJson.errors);
 
-        if (!response.ok) {
-            throw new Error(`HTTP error: ${response.status}`);
+    return responseJson.data;
+}
+
+async function getWallSummariesAsync() {
+    const query = `
+        query getWallSummaries {
+            getWalls {
+                slug
+                name
+                adminName
+                defaultWallImageUrl
+                problemsCount
+                minVGrade
+                maxVGrade
+            }
         }
+    `;
 
-        const walls = await response.json();
-        return walls;
-    } catch(err) {
-        console.error(`Could not get walls: ${error}`);
+    const response = await graphQLFetcherAsync(query);
+    const wallSummaries = response.getWalls;
+    return wallSummaries;
+}
+
+async function getWallSummaryAsync(slug) {
+    const query = `
+    query getWallSummary($slug: String!) {
+        getWall(slug: $slug) {
+            slug
+            name
+            adminName
+            defaultWallImageUrl
+            problemsCount
+            minVGrade
+            maxVGrade
+        }
     }
+    `;
+    const variables = {
+        slug: slug,
+    };
+
+    const response = await graphQLFetcherAsync(query, variables);
+    return response.getWall;
+}
+
+async function getWallAsync(slug) {
+    const query = `
+    query getWall($slug: String!) {
+        getWall(slug: $slug) {
+            slug
+            name
+            adminName
+            defaultWallImageUrl
+            problemsCount
+            minVGrade
+            maxVGrade
+            problems {
+                id
+                name
+                vGrade
+                setterName
+                description
+                likeCount
+                sendCount
+                holds {
+                    typeId
+                    x
+                    y
+                    r
+                }
+            }
+        }
+    }
+    `;
+    const variables = {
+        slug: slug,
+    };
+
+    const response = await graphQLFetcherAsync(query, variables);
+    return response.getWall;
+}
+
+async function getProblemAsync(slug, problemId) {
+    const query = `
+    query getProblem($wallSlug: String!, $problemId: String!){
+        getProblem(wallSlug: $wallSlug, problemId: $problemId) {
+            id
+            name
+            vGrade
+            setterName
+            description
+            wallImageUrl
+            likeCount
+            sendCount
+            holds {
+                typeId
+                x
+                y
+                r
+            }
+            createdAt
+        }
+    }
+    `;
+    const variables = {
+        wallSlug: slug,
+        problemId: problemId,
+    };
+
+    const response = await graphQLFetcherAsync(query, variables);
+    return response.getProblem;
+}
+
+async function createProblemAsync(slug, problem) {
+    const query = `
+        mutation createProblem($wallSlug: String!, $problem: CreateProblemInput!) {
+            createProblem(wallSlug: $wallSlug, problem: $problem) {
+                id
+                name
+                vGrade
+                setterName
+                description
+                wallImageUrl
+                likeCount
+                sendCount
+                holds {
+                    typeId
+                    x
+                    y
+                    r
+                }
+                createdAt
+            }
+        }
+    `;
+
+    // Clean up problem data
+    problem.vGrade = parseInt(problem.vGrade);
+    delete problem.id;
+    delete problem.wallImageUrl;
+    delete problem.likeCount;
+    delete problem.sendCount;
+    delete problem.createdAt;
+
+    const variables = {
+        wallSlug: slug,
+        problem: problem,
+    };
+
+    const response = await graphQLFetcherAsync(query, variables);
+    return response.createProblem;
+}
+
+async function updateProblemAsync(slug, problem) {
+    const query = `
+        mutation updateProblem($wallSlug: String!, $problem: UpdateProblemInput!) {
+            updateProblem(wallSlug: $wallSlug, problem: $problem) {
+                id
+                name
+                vGrade
+                setterName
+                description
+                wallImageUrl
+                likeCount
+                sendCount
+                holds {
+                    typeId
+                    x
+                    y
+                    r
+                }
+                createdAt
+            }
+        }
+    `;
+
+    // Clean up problem data
+    problem.vGrade = parseInt(problem.vGrade);
+    delete problem.likeCount;
+    delete problem.sendCount;
+    delete problem.createdAt;
+
+    const variables = {
+        wallSlug: slug,
+        problem: problem,
+    };
+
+    const response = await graphQLFetcherAsync(query, variables);
+    return response.updateProblem;
 }
 
 module.exports = {
-    async getWallsSummariesAsync() {
-        const walls = await getWallsAsync();
-        return walls.map(wall => summarizeWall(wall));
-    },
-    async getWallAsync(wallId) {
-        if (wallId == null)
-            return null;
-
-        const walls = await getWallsAsync();
-        return walls.find(wall => wall.id === wallId);
-    },
-    async getWallSummaryAsync(wallId) {
-        if (wallId == null)
-            return null;
-
-        const walls = await getWallsAsync();
-        const wall = walls.find(wall => wall.id === wallId);
-        if (wall == null)
-            return null;
-
-        return summarizeWall(wall);
-    },
-    async getProblemsForWallAsync(wallId) {
-        if (wallId == null)
-            return null;
-
-        const wall = await this.getWallAsync(wallId);
-        if (wall == null)
-            return null;
-
-        const problems = wall.problems ?? [];
-
-        return problems;
-    },
-    async getProblemAsync(wallId, problemId) {
-        if (wallId == null || problemId == null)
-            return null;
-
-        const problems = await this.getProblemsForWallAsync(wallId);
-        if (problems == null)
-            return null;
-
-        return problems.find(problem => problem.id === problemId); 
-    },
-    createProblemAsync(wallId, problem) {
-        console.log(`Creating problem for ${wallId}...`);
-        console.log(problem);
-
-        const wallIndex = data.findIndex(wall => wall.id === wallId);
-        if (wallIndex < 0)
-            return problem;
-
-        problem.id = 'p' + data[wallIndex].problemsCount;
-
-        return problem; // return the updated problem with id
-    },
-    updateProblemAsync(wallId, problem) {
-        console.log(`Updating problem for ${wallId}...`);
-        console.log(problem);
-    },
+    getWallSummariesAsync,
+    getWallSummaryAsync,
+    getWallAsync,
+    getProblemAsync,
+    createProblemAsync,
+    updateProblemAsync,
 };

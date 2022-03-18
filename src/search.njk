@@ -9,7 +9,7 @@
         isLoading: true,
     }"
     x-init="
-        walls = await $store.apiService.getWallsSummariesAsync();
+        walls = await $store.apiService.getWallSummariesAsync();
         isLoading = false;
     "
     class="w-full h-full">
@@ -22,7 +22,7 @@
             <template x-for="wall in walls">
                 <div 
                     class="card cursor-pointer"
-                    x-on:click="window.location = `/wall/?wallId=${wall.id}`">
+                    x-on:click="window.location = `/wall/?wall=${wall.slug}`">
                     <h2 
                         class="text-slate-700 text-base truncate" 
                         x-text="`${$store.utilService.vGradeToString(wall.minVGrade)} - ${$store.utilService.vGradeToString(wall.maxVGrade)} | ${wall.name}`"></h2>

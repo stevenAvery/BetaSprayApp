@@ -6,21 +6,19 @@
 <div
     x-cloak
     x-data="{
-        hasWallId: new URLSearchParams(location.search).has('wallId'),
-        wallId: new URLSearchParams(location.search).get('wallId'),
-        problems: [],
+        hasWallSlug: new URLSearchParams(location.search).has('wall'),
+        wallSlug: new URLSearchParams(location.search).get('wall'),
+        wall: {},
         isValidParameters: true,
         isLoading: true,
     }"
     x-init="
-        isValidParameters = hasWallId;
+        isValidParameters = hasWallSlug;
 
         if (isValidParameters) {
-            problems = await $store.apiService.getProblemsForWallAsync(wallId);
+            wall = await $store.apiService.getWallAsync(wallSlug);
         }
 
-        console.log('isLoading done');
-        console.log(problems);
         isLoading = false;
     "
     class="w-full h-full">
@@ -45,7 +43,7 @@
                 {% endif %}
                 <a 
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer" 
-                    x-on:click="window.location = `/problem/?wallId=${wallId}`" >
+                    x-on:click="window.location = `/problem/?wall=${wallSlug}`" >
                     {% iconlabel { icon: 'plus-circle', style: 'py-1' } %}Add Problem{% endiconlabel %}
                 </a>
             </div>
@@ -63,7 +61,7 @@
     <main x-show="!isLoading" class="container-w px-6 pt-4 pb-8">
         <div x-cloak x-show="!isValidParameters">
             <h2 class="text-2xl text-slate-700">Invalid URL Parameters</h2>
-            <p x-show="!hasWallId" class="text-sm text-slate-500">No wall id given.</p>
+            <p x-show="!hasWallSlug" class="text-sm text-slate-500">No wall given.</p>
             <p class="text-sm text-slate-500"><a class="text-blue-700 hover:text-blue-900" href="/search/">Search for a spray wall</a> to start crushing.</p>
         </div>
 
@@ -72,10 +70,10 @@
             x-cloak
             x-show="isValidParameters" 
             class="grid grid-auto-fit-200px gap-3 auto-rows-fr">
-            <template x-for="problem in problems">
+            <template x-for="problem in wall.problems">
                 <div 
                     class="card cursor-pointer"
-                    x-on:click="window.location = `/problem/?wallId=${wallId}&problemId=${problem.id}`">
+                    x-on:click="window.location = `/problem/?wall=${wallSlug}&problemId=${problem.id}`">
                     <h2 class="text-slate-700 text-base truncate" x-text="`${$store.utilService.vGradeToString(problem.vGrade)} | ${problem.name}`"></h2>
                     <p class="text-slate-400 text-xs truncate" x-text="problem.setterName"></p>
                     <div class="mt-2 flex flex-row flex-nowrap justify-end space-x-2">
@@ -92,7 +90,7 @@
             </template>
             <div 
                 x-cloak
-                x-on:click="window.location = `/problem/?wallId=${wallId}`"
+                x-on:click="window.location = `/problem/?wall=${wallSlug}`"
                 class="card-outline cursor-pointer" >
                 <h2 class="text-slate-500 text-base truncate">
                     {% iconlabel { icon: 'plus-circle', iconHeight: '24' } %}Add Problem{% endiconlabel %}
