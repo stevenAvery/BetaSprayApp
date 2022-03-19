@@ -66,8 +66,17 @@ html {
     @apply bg-white text-slate-600 border border-slate-300 focus:border-blue-500;
 }
 
+.button-group--disabled {
+    @apply flex flex-row flex-nowrap rounded-lg text-xs;
+    @apply bg-slate-100 text-slate-500 border border-slate-200 shadow-none cursor-default;
+}
+
 .button-group-item {
     @apply m-1 px-2 py-1 rounded-md hover:bg-slate-100;
+}
+
+.button-group-item--disabled {
+    @apply m-1 px-2 py-1 cursor-default;
 }
 
 .button-group-selected {
