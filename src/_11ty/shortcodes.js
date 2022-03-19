@@ -56,6 +56,19 @@ module.exports = {
                 </div>
             `;
         },
+        breadcrumbs: (crumbs) => {
+            const crumbMarkups = crumbs.map(crumb => {
+                const xTextMarkup = crumb['text'] != null ? `x-text="${crumb.text}"` : '';
+                const routeMarkup = crumb['route']  != null ? `x-bind:href="${crumb.route}"` : '';
+                const classMarkup = routeMarkup === ''
+                    ? `class="flex items-end px-2 text-sm text-slate-500 cursor-default"`
+                    : `class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer"`;
+
+                return `<a ${classMarkup} ${xTextMarkup} ${routeMarkup}></a>`;
+            });
+            const delimiter = `\n<span class="flex items-end text-sm text-slate-500 cursor-default">/</span>\n`;
+            return crumbMarkups.join(delimiter);
+        },
     },
 
     // Eleventy PairedShortcodes

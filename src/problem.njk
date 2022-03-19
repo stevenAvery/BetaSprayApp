@@ -17,6 +17,7 @@
         isValidParameters: true,
         isEditing: false,
         isLoading: true,
+        title: '',
     }"
     x-init="
         isNewProblem = hasWallSlug && !hasProblemId;
@@ -35,12 +36,18 @@
             problem = await $store.apiService.getProblemAsync(wallSlug, problemId);
             if (problem === null)
                 isValidParameters = false;
+            if (problem?.name != null)
+                title = problem.name + '';
         } else if (isValidParameters && isNewProblem) {
             problem = $store.utilService.getNewProblem(wall.defaultWallImageUrl);
             // Start in isEditing mode for new problems
             isEditing = true;
             $dispatch('is-editing-updated', { isEditing: isEditing });
+            title = 'Create Problem';
         }
+
+        if (!isValidParameters)
+            title = 'Error';
 
         isLoading = false;
     "
@@ -52,12 +59,10 @@
     <div x-cloak x-show="!isLoading && isValidParameters" class="container-w h-10">
         <div class="h-full flex flex-row flex-nowrap justify-between space-x-2 border-b border-slate-300">
             <div class="flex flex-row">
-                <a 
-                    x-show="hasWallSlug"
-                    x-bind:href="`/wall/?wall=${wallSlug}`"
-                    class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
-                    {% iconlabel { icon: 'chevron-left', style: 'py-1' } %}Back{% endiconlabel %}
-                </a>
+                {% breadcrumbs [
+                    { text: 'wall.name',  route: '`/wall/?wall=${wallSlug}`' },
+                    { text: 'title' }
+                ] %}
             </div>
             <div class="flex flex-row">
                 <a
