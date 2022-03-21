@@ -41,11 +41,11 @@
                     isLoading = false;
                 }
             };
-            this.startNewHold = (mouseDownEvent) => {
+            this.startNewHold = (clientX, clientY) => {
                 if (!isEditing)
                     return;
 
-                const ctxPoint = utils.getCtxPoint(this.canvas, mouseDownEvent);
+                const ctxPoint = utils.getCtxPoint(this.canvas, clientX, clientY);
                 const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
 
                 if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
@@ -59,11 +59,11 @@
                     utils.newHold = null;
                 }
             };
-            this.finishNewHold = (mouseUpEvent) => { 
+            this.finishNewHold = (clientX, clientY) => { 
                 if (!isEditing || utils.newHold == null)
                     return;
 
-                const ctxPoint = utils.getCtxPoint(this.canvas, mouseUpEvent);
+                const ctxPoint = utils.getCtxPoint(this.canvas, clientX, clientY);
                 const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
 
                 if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
@@ -102,10 +102,26 @@
             this.updateCanvasIfPossible();
         "
         x-on:mousedown="
-            this.startNewHold($event);
+            if (isEditing) {
+                this.startNewHold($event.clientX, $event.clientY);
+            }
+        "
+        x-on:touchstart.passive="
+            if (isEditing) {
+                const firstTouch = $event.touches[0];
+                this.startNewHold(firstTouch?.clientX, firstTouch?.clientY);
+            }
         "
         x-on:mouseup="
-            this.finishNewHold($event);
+            if (isEditing) {
+                this.finishNewHold($event.clientX, $event.clientY);
+            }
+        "
+        x-on:touchend.passive="
+            if (isEditing) {
+                const firstTouch = $event.changedTouches[0];
+                this.finishNewHold(firstTouch?.clientX, firstTouch?.clientY);
+            }
         "
         class="w-full h-full"
     >

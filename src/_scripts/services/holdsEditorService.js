@@ -47,10 +47,10 @@ function isPointInWallImage(imagePoint, wallImage) {
            imagePoint.y >= 0 && imagePoint.y < wallImage.height;
 }
 
-function getCtxPoint(canvas, event) {
+function getCtxPoint(canvas, clientX, clientY) {
     const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
+    const x = clientX - rect.left
+    const y = clientY - rect.top
     return { x, y };
 }
 
