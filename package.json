@@ -42,6 +42,7 @@
         "babel-loader": "^8.2.3",
         "cross-env": "^7.0.3",
         "css-loader": "^6.5.1",
+        "eleventy-favicon": "^1.1.2",
         "esbuild": "^0.14.3",
         "feather-icons": "^4.28.0",
         "html-minifier": "^4.0.0",

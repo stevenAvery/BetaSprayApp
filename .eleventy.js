@@ -1,12 +1,15 @@
 const transforms = require('./src/_11ty/transforms');
 const shortcodes = require('./src/_11ty/shortcodes');
+const faviconPlugin = require('eleventy-favicon');
 
 
 module.exports = (config) => {
     config.addWatchTarget('./dist/assets/main.css');
     config.addWatchTarget('./dist/assets/main.js');
 
-    config.addPassthroughCopy('./src/assets/*.{jpg,jpeg,png}');
+    config.addPassthroughCopy('./src/assets/*.{jpg,jpeg,png,svg}');
+
+    config.addPlugin(faviconPlugin, { destination: './dist' });
 
     config.setBrowserSyncConfig({
         files: ['dist/**/*'],
