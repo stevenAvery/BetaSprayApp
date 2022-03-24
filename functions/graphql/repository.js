@@ -18,6 +18,9 @@ const connect = async () => {
     return cachedDb;
 }
 
+// Connect to DB on start up
+connect();
+
 // Set new minVGrade, and maxVGrade
 // This function assumes that wallEntity has all problems in cases where we have to search for new vGrades
 const setWallExtremeVGradesIfPossible = (wallEntity, options = {}) => {

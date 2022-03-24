@@ -7,7 +7,7 @@
     }"
     x-init="
     "
-    class="w-full h-full m-0 p-0 overflow-hidden"
+    class="w-full h-full m-0 p-0 overflow-hidden touch-none"
 >
     {% loading { while: 'isLoading' } %}
 
@@ -106,7 +106,7 @@
                 this.startNewHold($event.clientX, $event.clientY);
             }
         "
-        x-on:touchstart.passive="
+        x-on:touchstart.passive.prevent="
             if (isEditing) {
                 const firstTouch = $event.touches[0];
                 this.startNewHold(firstTouch?.clientX, firstTouch?.clientY);
@@ -117,7 +117,7 @@
                 this.finishNewHold($event.clientX, $event.clientY);
             }
         "
-        x-on:touchend.passive="
+        x-on:touchend.passive.prevent="
             if (isEditing) {
                 const firstTouch = $event.changedTouches[0];
                 this.finishNewHold(firstTouch?.clientX, firstTouch?.clientY);
