@@ -6,6 +6,7 @@ const server = new ApolloServer({
     typeDefs,
     resolvers,
     context: (() => {  }),
+    playground: false,
 });
 
 exports.handler = server.createHandler();

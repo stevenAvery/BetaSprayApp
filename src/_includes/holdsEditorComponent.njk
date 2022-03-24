@@ -5,9 +5,9 @@
     x-data="{
         isLoading: true,
     }"
-    x-init="
-    "
-    class="w-full h-full m-0 p-0 overflow-hidden touch-none"
+    x-init=""
+    class="w-full h-full m-0 p-0 overflow-hidden"
+    x-bind:class="isEditing ? 'touch-none' : 'touch-auto'"
 >
     {% loading { while: 'isLoading' } %}
 
