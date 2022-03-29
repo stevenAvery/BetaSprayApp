@@ -2,50 +2,50 @@
 const HOLD_LINE_WIDTH = 3;
 
 // Resizes the given canvas to fit its contianer 
-function fitCanvasToContainer(canvas, holdsEditorContainer) {
-    canvas.width = holdsEditorContainer.clientWidth;
-    canvas.height = holdsEditorContainer.clientHeight;
-    return canvas;
-}
+// function fitCanvasToContainer(canvas, holdsEditorContainer) {
+//     canvas.width = holdsEditorContainer.clientWidth;
+//     canvas.height = holdsEditorContainer.clientHeight;
+//     return canvas;
+// }
 
 // Transforms a wall image to fit the context
 // TODO allow zoom in, zoom out, and move
-function getWallImageTransform(ctx, wallImage) {
-    const imageScaleX = ctx.canvas.width  / wallImage.width;
-    const imageScaleY = ctx.canvas.height / wallImage.height;
-    const scale = Math.min(imageScaleX, imageScaleY);
+// function getWallImageTransform(ctx, wallImage) {
+//     const imageScaleX = ctx.canvas.width  / wallImage.width;
+//     const imageScaleY = ctx.canvas.height / wallImage.height;
+//     const scale = Math.min(imageScaleX, imageScaleY);
 
-    const width = wallImage.width * scale;
-    const height = wallImage.height * scale;
+//     const width = wallImage.width * scale;
+//     const height = wallImage.height * scale;
 
-    const x = (ctx.canvas.width  - width)  / 2.0;
-    const y = (ctx.canvas.height - height) / 2.0;
+//     const x = (ctx.canvas.width  - width)  / 2.0;
+//     const y = (ctx.canvas.height - height) / 2.0;
 
-    return { x, y, width, height, scale };
-}
+//     return { x, y, width, height, scale };
+// }
 
-function imagePointToCtxPoint(imagex, imagey, wallImageTransform) {
-    const x = imagex * wallImageTransform.scale + wallImageTransform.x;
-    const y = imagey * wallImageTransform.scale + wallImageTransform.y;
+// function imagePointToCtxPoint(imagex, imagey, wallImageTransform) {
+//     const x = imagex * wallImageTransform.scale + wallImageTransform.x;
+//     const y = imagey * wallImageTransform.scale + wallImageTransform.y;
 
-    return { x, y };
-}
+//     return { x, y };
+// }
 
-function ctxPointToImagePoint(ctxx, ctxy, wallImageTransform) {
-    const x = (ctxx - wallImageTransform.x) / wallImageTransform.scale;
-    const y = (ctxy - wallImageTransform.y) / wallImageTransform.scale;
+// function ctxPointToImagePoint(ctxx, ctxy, wallImageTransform) {
+//     const x = (ctxx - wallImageTransform.x) / wallImageTransform.scale;
+//     const y = (ctxy - wallImageTransform.y) / wallImageTransform.scale;
 
-    return { x, y };
-}
+//     return { x, y };
+// }
 
-function imagePointToCtxScale(size, wallImageTransform) {
-    return size * wallImageTransform.scale;
-}
+// function imagePointToCtxScale(size, wallImageTransform) {
+//     return size * wallImageTransform.scale;
+// }
 
-function isPointInWallImage(imagePoint, wallImage) {
-    return imagePoint.x >= 0 && imagePoint.x < wallImage.width && 
-           imagePoint.y >= 0 && imagePoint.y < wallImage.height;
-}
+// function isPointInWallImage(imagePoint, wallImage) {
+//     return imagePoint.x >= 0 && imagePoint.x < wallImage.width && 
+//            imagePoint.y >= 0 && imagePoint.y < wallImage.height;
+// }
 
 function getCtxPoint(canvas, clientX, clientY) {
     const rect = canvas.getBoundingClientRect()
@@ -89,33 +89,27 @@ function render(ctx, wallImage, problem, allHoldTypes, isEditing = false) {
     return {ctx, wallImageTransform};
 }
 
+// module.exports = {
+//     getUtils: () => ({
+//         fitCanvasToContainer,
+//         render,
+//         isPointInWallImage,
+//         ctxPointToImagePoint,
+//         getCtxPoint,
+
+//         wallImage: new Image(),
+//         isImageLoaded: false,
+//         isAfterFirstTick: false,
+//         newHold: null,
+//         wallImageTransform: null,
+//     }),
+//     problem: {},
+//     selectedHoldTypeId: 0,
+// };
+
 module.exports = {
-    getUtils: () => ({
-        fitCanvasToContainer,
-        render,
-        isPointInWallImage,
-        ctxPointToImagePoint,
-        getCtxPoint,
-
-        wallImage: new Image(),
-        isImageLoaded: false,
-        isAfterFirstTick: false,
-        newHold: null,
-        wallImageTransform: null,
-    }),
-    problem: {},
+    isEditing: false,
     selectedHoldTypeId: 0,
-
-    // wallImageUrl: '',
-    // scale: 1,
-    // minScale: 1,
-    // maxScale: 4,
-    // isEditable: false,
-    // zoomIn: () => {
-    //     console.log('zoom in');
-    //     this.scale = Math.min(this.maxScale, this.scale * 1.1);
-    // },
-    // zoomOut: () => {
-    //     this.scale = Math.max(this.minScale, this.scale / 1.1);
-    // }
+    wallImageUrl: '',
+    holds: [],
 };

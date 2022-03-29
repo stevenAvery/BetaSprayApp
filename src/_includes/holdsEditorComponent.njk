@@ -1,6 +1,203 @@
 
 <div
     x-ref="holdsEditorContainer"
+    x-data="{
+        isLoadingHoldsEditor: true,
+        holdTypeSelectedId: 0, {# TODO use $store.holdsEditorService.holdTypeSelectedId #}
+    }"
+    class="input-holds-editor"
+    x-bind:class="$store.holdsEditorService.isEditing ? 'touch-none' : 'touch-auto input-holds-editor--disabled'">
+    
+    {% loading { while: 'isLoadingHoldsEditor' } %}
+
+    <canvas
+        x-ref="holdsEditorCanvas"
+        x-show="!isLoadingHoldsEditor"
+        x-data="{
+            ctx: $refs.holdsEditorCanvas.getContext('2d'),
+            wallImage: new Image(),
+            wallImageTransform: {}, {# TODO set defaults #}
+            newHold: null,
+            isImageLoaded: false,
+            isAfterFirstTick: false,
+            {# Fit the canvas to the div container #}
+            fitCanvasToContainer(holdsEditorContainer) {
+                this.ctx.canvas.width  = holdsEditorContainer.clientWidth;
+                this.ctx.canvas.height = holdsEditorContainer.clientHeight;
+            },
+            {# Fit the wall image to the canvas #}
+            updateWallImageTransform() {
+                const imageScaleX = this.ctx.canvas.width  / this.wallImage.width;
+                const imageScaleY = this.ctx.canvas.height / this.wallImage.height;
+                
+                const scale = Math.min(imageScaleX, imageScaleY);
+                const width =  this.wallImage.width * scale;
+                const height = this.wallImage.height * scale;
+                const x = (this.ctx.canvas.width  - width)  / 2.0;
+                const y = (this.ctx.canvas.height - height) / 2.0;
+
+                this.wallImageTransform = { x, y, width, height, scale };
+                return this.wallImageTransform;
+            },
+            imagePointToCtxPoint(imagex, imagey) {
+                const x = imagex * this.wallImageTransform.scale + this.wallImageTransform.x;
+                const y = imagey * this.wallImageTransform.scale + this.wallImageTransform.y;
+
+                return { x, y };
+            },
+            ctxPointToImagePoint(ctxx, ctxy) {
+                const x = (ctxx - this.wallImageTransform.x) / this.wallImageTransform.scale;
+                const y = (ctxy - this.wallImageTransform.y) / this.wallImageTransform.scale;
+
+                return { x, y };
+            },
+            imagePointToCtxScale(size) {
+                return size * this.wallImageTransform.scale;
+            },
+            isPointInWallImage(imagePoint) {
+                return imagePoint.x >= 0 && imagePoint.x < this.wallImage.width && 
+                       imagePoint.y >= 0 && imagePoint.y < this.wallImage.height;
+            },
+            getHoldColour(holdTypeId) {
+                const allHoldTypes = $store.utilService.getAllHoldTypes();
+                const holdType = allHoldTypes.find(holdType => holdType.id === holdTypeId) || null;
+                return holdType?.colour ?? 'rgb(0, 0, 0)';
+            },
+            clientPointToCtxPoint(clientX, clientY) {
+                const rect = this.ctx.canvas.getBoundingClientRect();
+                const x = clientX - rect.left;
+                const y = clientY - rect.top;
+                return { x, y };
+            },
+            {# Render the wall with all holds to the canvas #}
+            render() {
+                // Clear background
+                this.ctx.fillStyle = $store.holdsEditorService.isEditing ? '#FFFFFF' : '#F1F5F9';
+                this.ctx.fillRect(0, 0, this.ctx.canvas.width, this.ctx.canvas.height);
+
+                // Draw wall image
+                this.updateWallImageTransform();
+                this.ctx.drawImage(
+                    this.wallImage, 
+                    this.wallImageTransform.x, this.wallImageTransform.y, 
+                    this.wallImageTransform.width, this.wallImageTransform.height);
+
+                // Draw climbing holds
+                for(hold of problem.holds) {
+                    const point = this.imagePointToCtxPoint(hold.x, hold.y);
+                    const r = this.imagePointToCtxScale(hold.r);
+                    const colour = this.getHoldColour(hold.typeId);
+
+                    this.ctx.strokeStyle = colour;
+                    this.ctx.lineWidth = 3; // Hold line width
+                    this.ctx.beginPath();
+                    this.ctx.arc(point.x, point.y, r, 0, 2 * Math.PI);
+                    this.ctx.closePath();
+                    this.ctx.stroke();
+                }
+            },
+            {# Update the canvas with the latest information if everything is done loading #}
+            updateCanvasIfPossible() {
+                if (this.isImageLoaded && this.isAfterFirstTick) {                    
+                    this.fitCanvasToContainer($refs.holdsEditorContainer);
+                    this.render();
+
+                    this.isLoadingHoldsEditor = false;
+                }
+            },
+            startNewHold(clientX, clientY) {
+                if (!$store.holdsEditorService.isEditing)
+                    return;
+
+                const ctxPoint = this.clientPointToCtxPoint(clientX, clientY);
+                const wallImagePoint = this.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y);
+
+                if (this.isPointInWallImage(wallImagePoint)) {
+                    this.newHold = {
+                        typeId: $store.holdsEditorService.selectedHoldTypeId,
+                        x: wallImagePoint.x,
+                        y: wallImagePoint.y,
+                        r: 0.0,
+                    };
+                } else {
+                    this.newHold = null;
+                }
+            },
+            updateNewHold(clientX, clientY) {
+
+            },
+            finishNewHold(clientX, clientY) {
+                if (!$store.holdsEditorService.isEditing || this.newHold == null)
+                    return;
+
+                const ctxPoint = this.clientPointToCtxPoint(clientX, clientY);
+                const wallImagePoint = this.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y);
+
+                if (this.isPointInWallImage(wallImagePoint)) {
+                    const distance = $store.utilService.getDistance(
+                        this.newHold.x, this.newHold.y, wallImagePoint.x, wallImagePoint.y);
+                    this.newHold.r = distance;
+
+                    $dispatch('hold-added', { hold: this.newHold }); // TODO check where this is consumed
+                    $store.holdsEditorService.holds.push(this.newHold);
+                    this.updateCanvasIfPossible();
+                }
+
+                // Always clear out newHold object
+                this.newHold = null;
+            }
+        }"
+        x-init="
+            // Load wall image
+            wallImage.src = $store.holdsEditorService.wallImageUrl;
+            wallImage.addEventListener('load', () => {
+                isImageLoaded = true;
+                updateCanvasIfPossible();
+            });
+
+            $nextTick(() => {
+                isAfterFirstTick = true;
+                updateCanvasIfPossible();
+            });
+
+            $watch('$store.holdsEditorService.isEditing', _ => updateCanvasIfPossible());
+        "
+        x-on:resize.window="
+            updateCanvasIfPossible();
+        "
+        x-on:mousedown="
+            if ($store.holdsEditorService.isEditing) {
+                startNewHold($event.clientX, $event.clientY);
+            }
+        "
+        x-on:touchstart.passive.prevent="
+            if ($store.holdsEditorService.isEditing) {
+                const firstTouch = $event.touches[0];
+                startNewHold(firstTouch?.clientX, firstTouch?.clientY);
+            }
+        "
+        x-on:mouseup="
+            if ($store.holdsEditorService.isEditing) {
+                finishNewHold($event.clientX, $event.clientY);
+            }
+        "
+        x-on:touchend.passive.prevent="
+            if ($store.holdsEditorService.isEditing) {
+                const firstTouch = $event.changedTouches[0];
+                finishNewHold(firstTouch?.clientX, firstTouch?.clientY);
+            }
+        ">
+    </canvas>
+</div>
+
+
+
+
+
+
+{#
+<div
+    x-ref="holdsEditorContainer"
     id="holdsEditorContainer"
     x-data="{
         isLoading: true,
@@ -45,7 +242,7 @@
                 if (!isEditing)
                     return;
 
-                const ctxPoint = utils.getCtxPoint(this.canvas, clientX, clientY);
+                const ctxPoint = utils.clientPointToCtxPoint(this.canvas, clientX, clientY);
                 const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
 
                 if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
@@ -63,7 +260,7 @@
                 if (!isEditing || utils.newHold == null)
                     return;
 
-                const ctxPoint = utils.getCtxPoint(this.canvas, clientX, clientY);
+                const ctxPoint = utils.clientPointToCtxPoint(this.canvas, clientX, clientY);
                 const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
 
                 if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
@@ -127,3 +324,4 @@
     >
      </canvas>
 </div>
+#}

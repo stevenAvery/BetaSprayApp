@@ -66,6 +66,7 @@ html {
     @apply bg-white text-slate-600 border border-slate-300 focus:border-blue-500;
 }
 
+/* TODO have this be just a modifier */
 .button-group--disabled {
     @apply flex flex-row flex-nowrap rounded-lg text-xs;
     @apply bg-slate-100 text-slate-500 border border-slate-200 shadow-none cursor-default;
@@ -86,15 +87,17 @@ html {
 /*** Problem Page *************************************************************/
 .holds-editor-size {
     @apply w-full;
-    height: calc(100vh - 250px);
+    height: calc(100vh - 200px);
 }
 
 .input-holds-editor {
+    @apply w-full h-full m-0 p-0 overflow-hidden;
     @apply rounded-lg bg-white border border-slate-300;
     @apply cursor-crosshair;
 }
 
-.input-holds-editor-disabled {
+.input-holds-editor--disabled {
+    @apply w-full h-full m-0 p-0 overflow-hidden;
     @apply rounded-lg border;
     @apply bg-slate-100 border-slate-200 shadow-none;
     @apply cursor-default;

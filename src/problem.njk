@@ -36,18 +36,24 @@
             problem = await $store.apiService.getProblemAsync(wallSlug, problemId);
             if (problem === null)
                 isValidParameters = false;
-            if (problem?.name != null)
+            if (problem?.name != null) {
                 title = problem.name + '';
+                $store.holdsEditorService.wallImageUrl = problem.wallImageUrl;
+                $store.holdsEditorService.holds = problem.holds;
+            }
         } else if (isValidParameters && isNewProblem) {
             problem = $store.utilService.getNewProblem(wall.defaultWallImageUrl);
-            // Start in isEditing mode for new problems
-            isEditing = true;
-            $dispatch('is-editing-updated', { isEditing: isEditing });
+            isEditing = true; {# Start in isEditing mode for new problems #}
             title = 'Create Problem';
+            $store.holdsEditorService.wallImageUrl = wall.defaultWallImageUrl;
+            $store.holdsEditorService.holds = [];
         }
 
         if (!isValidParameters)
             title = 'Error';
+
+        $watch('isEditing', val => $store.holdsEditorService.isEditing = val);
+        $store.holdsEditorService.isEditing = isEditing;
 
         isLoading = false;
     "
@@ -69,7 +75,6 @@
                     x-show="isExistingProblem && !isEditing"
                     x-on:click="
                         isEditing = true;
-                        $dispatch('is-editing-updated', { isEditing: isEditing })
                     "
                     class="flex items-end px-2 text-sm text-slate-500 hover:text-blue-700 cursor-pointer">
                     {% iconlabel { icon: 'edit', style: 'py-1' } %}Edit{% endiconlabel %}
@@ -78,7 +83,6 @@
                     x-show="isEditing"
                     x-on:click="
                         isEditing = false;
-                        $dispatch('is-editing-updated', { isEditing: isEditing });
 
                         if (isExistingProblem) {
                             await $store.apiService.updateProblemAsync(wallSlug, problem);
@@ -176,74 +180,46 @@
                     <label for="holds" class="input-label">Holds</label>
 
                     <!-- Holds Editor Component -->
-                    <div
-                        x-data="{
-                            holdTypes: $store.utilService.getAllHoldTypes(),
-                            holdTypeSelectedId: 0,
-                        }"
-                        class="flex flex-col">
+                    <div class="holds-editor-size overflow-auto">
+                        {% include 'holdsEditorComponent.njk' %}
+                    </div>
+
+                    <!-- Holds Buttons -->
+                    <div class="mt-2 flex flex-row justify-between space-x-2">
                         <div 
-                            id="holds" 
-                            x-bind:class="{
-                                'holds-editor-size overflow-auto input-holds-editor': true, 
-                                'input-holds-editor-disabled': !isEditing
+                            x-data="{
+                                holdTypeSelectedId: 0
                             }"
-                            x-init="
-                                // $store.holdsEditorService.wallImageUrl = problem.wallImageUrl;
-                                $store.holdsEditorService.problem = problem;
-                            "
-                            x-on:hold-added="
-                                problem.holds.push($event.detail.hold);
-                                $store.holdsEditorService.problem = problem;
-                            ">
-                            {% include 'holdsEditorComponent.njk' %}
-                        </div>
-                        <div class="mt-2 flex flex-row justify-between space-x-2">
-                            <div x-bind:class="isEditing ? 'button-group' : 'button-group--disabled'">
-                                <template x-for="holdType in holdTypes">
-                                    <button 
-                                        type="button" 
-                                        class="flex flex-row flex-nowrap" 
-                                        x-bind:class="[
-                                            isEditing ? 'button-group-item' : 'button-group-item--disabled',
-                                            isEditing && holdTypeSelectedId === holdType.id ? 'button-group-selected' : ''
-                                        ]"
-                                        x-on:click="
-                                            if(isEditing) {
-                                                holdTypeSelectedId = holdType.id;
-                                                $store.holdsEditorService.selectedHoldTypeId = holdTypeSelectedId;
-                                            }
-                                        ">
-                                        {# <span x-bind:style="holdTypeSelectedId !== holdType.id ? `color: ${holdType.colour};` : ''"> #}
-                                        <span x-bind:style="`color: ${holdType.colour};`">
-                                            {% icon 'circle', { height: '18px', hasMarginRight: true } %}
-                                        </span>
-                                        <span x-text="holdType.text"></span>
-                                    </button>
-                                </template>
-                            </div>
-                            <div class="flex flex-row flex-nowrap space-x-2">
-                                {% if config.featureFlags.holdsEditorUndo %}
-                                <div  x-show="isEditing" class="button-group">
-                                    <button type="button" class="button-group-item">
-                                        {% icon 'rotate-ccw', { height: '18px' } %}
-                                    </button>
-                                </div>
-                                {% endif %}
-                                {% if config.featureFlags.holdsEditorZoom %}
-                                <!-- Zoom Feature -->
-                                <div class="button-group">
-                                    <button type="button" class="button-group-item" 
-                                        x-on:click="$store.holdsEditorService.zoomOut()">
-                                        {% icon 'zoom-out', { height: '18px' } %}
-                                    </button>
-                                    <button type="button" class="button-group-item"
-                                        x-on:click="$store.holdsEditorService.zoomIn()">
-                                        {% icon 'zoom-in', { height: '18px' } %}
-                                    </button>
-                                </div>
-                                {% endif %}
-                            </div>
+                            class="button-group" 
+                            x-bind:class="{
+                                'button-group--disabled': !isEditing
+                            }">
+                            {# TODO Get this list from utilService.getAllHoldTypes #}
+                            {% for holdType in [
+                                { id: 0, colour: '#07EF26', text: 'Start'     },
+                                { id: 1, colour: '#FFE500', text: 'Foot'      },
+                                { id: 2, colour: '#0010FF', text: 'Hand/Foot' },
+                                { id: 3, colour: '#FF0000', text: 'Finish'    }
+                            ] %}
+                                <button 
+                                    type="button" 
+                                    class="flex flex-row flex-nowrap button-group-item" 
+                                    x-bind:class="{
+                                        'button-group-item--disabled': isEditing,
+                                        'button-group-selected': isEditing && holdTypeSelectedId === {{ holdType.id }}
+                                    }"
+                                    x-on:click="
+                                        if(isEditing) {
+                                            holdTypeSelectedId = {{ holdType.id }};
+                                            $store.holdsEditorService.selectedHoldTypeId = holdTypeSelectedId;
+                                        }
+                                    ">
+                                    <span style="color: {{ holdType.colour }}">
+                                        {% icon 'circle', { height: '18px', hasMarginRight: true } %}
+                                    </span>
+                                    <span>{{ holdType.text }}</span>
+                                </button>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
