@@ -69,6 +69,18 @@
                 const y = clientY - rect.top;
                 return { x, y };
             },
+            renderHold(hold) {
+                const point = this.imagePointToCtxPoint(hold.x, hold.y);
+                const r = this.imagePointToCtxScale(hold.r);
+                const colour = this.getHoldColour(hold.typeId);
+
+                this.ctx.strokeStyle = colour;
+                this.ctx.lineWidth = 3; // Hold line width
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, r, 0, 2 * Math.PI);
+                this.ctx.closePath();
+                this.ctx.stroke();
+            },
             {# Render the wall with all holds to the canvas #}
             render() {
                 // Clear background
@@ -84,25 +96,18 @@
 
                 // Draw climbing holds
                 for(hold of problem.holds) {
-                    const point = this.imagePointToCtxPoint(hold.x, hold.y);
-                    const r = this.imagePointToCtxScale(hold.r);
-                    const colour = this.getHoldColour(hold.typeId);
+                    this.renderHold(hold);
+                }
 
-                    this.ctx.strokeStyle = colour;
-                    this.ctx.lineWidth = 3; // Hold line width
-                    this.ctx.beginPath();
-                    this.ctx.arc(point.x, point.y, r, 0, 2 * Math.PI);
-                    this.ctx.closePath();
-                    this.ctx.stroke();
+                // Draw newHold while it's being edited
+                if (this.newHold != null) {
+                    this.renderHold(this.newHold);
                 }
             },
             {# Update the canvas with the latest information if everything is done loading #}
             updateCanvasIfPossible() {
-                if (this.isImageLoaded && this.isAfterFirstTick) {                    
-                    this.fitCanvasToContainer($refs.holdsEditorContainer);
+                if (this.isImageLoaded && this.isAfterFirstTick) {
                     this.render();
-
-                    this.isLoadingHoldsEditor = false;
                 }
             },
             startNewHold(clientX, clientY) {
@@ -124,7 +129,19 @@
                 }
             },
             updateNewHold(clientX, clientY) {
+                if (!$store.holdsEditorService.isEditing || this.newHold == null)
+                    return;
 
+                const ctxPoint = this.clientPointToCtxPoint(clientX, clientY);
+                const wallImagePoint = this.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y);
+
+                if (this.isPointInWallImage(wallImagePoint)) {
+                    const distance = $store.utilService.getDistance(
+                        this.newHold.x, this.newHold.y, wallImagePoint.x, wallImagePoint.y);
+                    this.newHold.r = distance;
+
+                    this.updateCanvasIfPossible();
+                }
             },
             finishNewHold(clientX, clientY) {
                 if (!$store.holdsEditorService.isEditing || this.newHold == null)
@@ -152,17 +169,28 @@
             wallImage.src = $store.holdsEditorService.wallImageUrl;
             wallImage.addEventListener('load', () => {
                 isImageLoaded = true;
-                updateCanvasIfPossible();
+
+                if (isImageLoaded && isAfterFirstTick) {
+                    fitCanvasToContainer($refs.holdsEditorContainer);
+                    updateCanvasIfPossible();
+                    isLoadingHoldsEditor = false;
+                }
             });
 
             $nextTick(() => {
                 isAfterFirstTick = true;
-                updateCanvasIfPossible();
+
+                if (isImageLoaded && isAfterFirstTick) {
+                    fitCanvasToContainer($refs.holdsEditorContainer);
+                    updateCanvasIfPossible();
+                    isLoadingHoldsEditor = false;
+                }
             });
 
             $watch('$store.holdsEditorService.isEditing', _ => updateCanvasIfPossible());
         "
         x-on:resize.window="
+            fitCanvasToContainer($refs.holdsEditorContainer);
             updateCanvasIfPossible();
         "
         x-on:mousedown="
@@ -174,6 +202,17 @@
             if ($store.holdsEditorService.isEditing) {
                 const firstTouch = $event.touches[0];
                 startNewHold(firstTouch?.clientX, firstTouch?.clientY);
+            }
+        "
+        x-on:mousemove="
+            if ($store.holdsEditorService.isEditing) {
+                updateNewHold($event.clientX, $event.clientY);
+            }
+        "
+        x-on:touchmove.passive.prevent="
+            if ($store.holdsEditorService.isEditing) {
+                const firstTouch = $event.changedTouches[0];
+                updateNewHold(firstTouch?.clientX, firstTouch?.clientY);
             }
         "
         x-on:mouseup="
@@ -189,139 +228,3 @@
         ">
     </canvas>
 </div>
-
-
-
-
-
-
-{#
-<div
-    x-ref="holdsEditorContainer"
-    id="holdsEditorContainer"
-    x-data="{
-        isLoading: true,
-    }"
-    x-init=""
-    class="w-full h-full m-0 p-0 overflow-hidden"
-    x-bind:class="isEditing ? 'touch-none' : 'touch-auto'"
->
-    {% loading { while: 'isLoading' } %}
-
-     <canvas 
-        x-ref="holdsEditorCanvas"
-        x-show="!isLoading"
-        x-data="{
-            canvas: null,
-            ctx: null,
-            utils: $store.holdsEditorService.getUtils(),
-            updateCanvasIfPossible: null,
-            startNewHold: null,
-            finishNewHold: null
-        }"
-        x-init="
-            // TODO Find better way of storing this function
-            this.updateCanvasIfPossible = () => {
-                if (utils.isImageLoaded && utils.isAfterFirstTick) {
-                    var allHoldTypes = $store.utilService.getAllHoldTypes()
-
-                    this.canvas = utils.fitCanvasToContainer(this.canvas, $refs.holdsEditorContainer);
-                    const renderResult = utils.render(
-                        this.ctx, 
-                        utils.wallImage, 
-                        $store.holdsEditorService.problem, 
-                        allHoldTypes,
-                        isEditing);
-                    this.ctx = renderResult.ctx;
-                    utils.wallImageTransform = renderResult.wallImageTransform;
-
-                    isLoading = false;
-                }
-            };
-            this.startNewHold = (clientX, clientY) => {
-                if (!isEditing)
-                    return;
-
-                const ctxPoint = utils.clientPointToCtxPoint(this.canvas, clientX, clientY);
-                const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
-
-                if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
-                    utils.newHold = {
-                        typeId: $store.holdsEditorService.selectedHoldTypeId,
-                        x: wallImagePoint.x,
-                        y: wallImagePoint.y,
-                        r: 0.0,
-                    };
-                } else {
-                    utils.newHold = null;
-                }
-            };
-            this.finishNewHold = (clientX, clientY) => { 
-                if (!isEditing || utils.newHold == null)
-                    return;
-
-                const ctxPoint = utils.clientPointToCtxPoint(this.canvas, clientX, clientY);
-                const wallImagePoint = utils.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y, utils.wallImageTransform);
-
-                if (utils.isPointInWallImage(wallImagePoint, utils.wallImage)) {
-                    const distance = $store.utilService.getDistance(
-                        utils.newHold.x, utils.newHold.y, wallImagePoint.x, wallImagePoint.y);
-                    utils.newHold.r = distance;
-
-                    $dispatch('hold-added', { hold: utils.newHold });
-                    $store.holdsEditorService.problem.holds.push(utils.newHold);
-                    this.updateCanvasIfPossible();
-                }
-
-                // Clear out newHold object no matter what
-                utils.newHold = null;
-            };
-
-            this.canvas = $refs.holdsEditorCanvas; // TODO Is it necessary to store canvas if it exists in ctx?
-            this.ctx = this.canvas.getContext('2d');
-
-            utils.wallImage.src = $store.holdsEditorService.problem.wallImageUrl;
-            utils.wallImage.addEventListener('load', () => {
-                utils.isImageLoaded = true;
-                this.updateCanvasIfPossible();
-            });
-
-            $nextTick(() => {
-                utils.isAfterFirstTick = true;
-                this.updateCanvasIfPossible();
-            });
-
-        "
-        x-on:is-editing-updated.window="
-            this.updateCanvasIfPossible();
-        "
-        x-on:resize.window="
-            this.updateCanvasIfPossible();
-        "
-        x-on:mousedown="
-            if (isEditing) {
-                this.startNewHold($event.clientX, $event.clientY);
-            }
-        "
-        x-on:touchstart.passive.prevent="
-            if (isEditing) {
-                const firstTouch = $event.touches[0];
-                this.startNewHold(firstTouch?.clientX, firstTouch?.clientY);
-            }
-        "
-        x-on:mouseup="
-            if (isEditing) {
-                this.finishNewHold($event.clientX, $event.clientY);
-            }
-        "
-        x-on:touchend.passive.prevent="
-            if (isEditing) {
-                const firstTouch = $event.changedTouches[0];
-                this.finishNewHold(firstTouch?.clientX, firstTouch?.clientY);
-            }
-        "
-        class="w-full h-full"
-    >
-     </canvas>
-</div>
-#}
