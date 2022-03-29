@@ -141,23 +141,20 @@
                     this.newHold.r = distance;
 
                     this.updateCanvasIfPossible();
+
+                    return true;
                 }
+                return false;
             },
             finishNewHold(clientX, clientY) {
                 if (!$store.holdsEditorService.isEditing || this.newHold == null)
                     return;
 
-                const ctxPoint = this.clientPointToCtxPoint(clientX, clientY);
-                const wallImagePoint = this.ctxPointToImagePoint(ctxPoint.x, ctxPoint.y);
+                const isSuccessfullyUpdated = this.updateNewHold(clientX, clientY);
 
-                if (this.isPointInWallImage(wallImagePoint)) {
-                    const distance = $store.utilService.getDistance(
-                        this.newHold.x, this.newHold.y, wallImagePoint.x, wallImagePoint.y);
-                    this.newHold.r = distance;
-
-                    $dispatch('hold-added', { hold: this.newHold }); // TODO check where this is consumed
+                if (isSuccessfullyUpdated) {
                     $store.holdsEditorService.holds.push(this.newHold);
-                    this.updateCanvasIfPossible();
+                    $dispatch('hold-added', { hold: this.newHold }); // TODO check where this is consumed
                 }
 
                 // Always clear out newHold object

@@ -57,6 +57,9 @@
 
         isLoading = false;
     "
+    x-on:hold-added="
+        problem.holds.push($event.detail.hold);
+    "
     class="h-full">
 
     {% loading { while: 'isLoading', delayShow: 750 } %}
