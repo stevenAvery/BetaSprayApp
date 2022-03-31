@@ -7,7 +7,11 @@ const {
     wallEntitiesToWalls,
 } = require('./mappers');
 
-const DB_CONNECTION_URI = process.env.CONTEXT === "production" 
+
+console.log('--- Environment Variables ---');
+console.log(process.env);
+
+const DB_CONNECTION_URI = process.env.BRANCH === "main"
     ? process.env.DB_CONNECTION_URI_PROD 
     : process.env.DB_CONNECTION_URI_DEV;
 
