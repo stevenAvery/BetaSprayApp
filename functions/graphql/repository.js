@@ -7,8 +7,9 @@ const {
     wallEntitiesToWalls,
 } = require('./mappers');
 
-
-const DB_CONNECTION_URI = process.env.DB_CONNECTION_URI;
+const DB_CONNECTION_URI = process.env.CONTEXT === "production" 
+    ? process.env.DB_CONNECTION_URI_PROD 
+    : process.env.DB_CONNECTION_URI_DEV;
 
 let cachedDb = null;
 const connect = async () => {
@@ -18,7 +19,7 @@ const connect = async () => {
     return cachedDb;
 }
 
-// Connect to DB on start up
+// Connect to DB on start up to avoid cold start for first user
 connect();
 
 // Set new minVGrade, and maxVGrade
