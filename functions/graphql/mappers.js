@@ -31,7 +31,9 @@ const problemEntitiesToProblems = (problemEntities) => {
     if (problemEntities === [])
         return [];
 
-    return problemEntities.map(problemEntity => problemEntityToProblem(problemEntity));
+    return problemEntities
+        .map(problemEntity => problemEntityToProblem(problemEntity))
+        .sort((a, b) => b.createdAt - a.createdAt); // sort by newest first
 }
 
 const wallEntityToWall = (wallEntity) => {

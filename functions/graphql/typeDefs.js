@@ -33,7 +33,7 @@ const typeDefs = gql`
         name: String!
         vGrade: Int
         setterName: String!
-        description: String!
+        description: String
         wallImageUrl: String!
         likeCount: Int!
         sendCount: Int!
@@ -74,7 +74,7 @@ const typeDefs = gql`
         name: String!
         vGrade: Int!
         setterName: String!
-        description: String!
+        description: String
         holds: [HoldInput!]!
     }
 
@@ -91,7 +91,7 @@ const typeDefs = gql`
         name: String!
         vGrade: Int
         setterName: String!
-        description: String!
+        description: String
         wallImageUrl: String
         holds: [HoldInput!]!
     }
